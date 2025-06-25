@@ -1,0 +1,9 @@
+django
+django-tailwind
+django-crispy-forms
+crispy-tailwind
+django-htmx
+django-leaflet
+django-carton
+django-contrib-comments
+channels
