@@ -1,0 +1,18 @@
+{% load static %}
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <img src="{% static 'img/logo.png' %}" alt="BlowSquared Logo" class="logo-img">
+    </div>
+    <div class="nav-menu">
+      <a href="{% url 'home' %}" class="nav-link">Home</a>
+      <a href="{% url 'prodotti:list' %}" class="nav-link">Prodotti</a>
+      <a href="{% url 'carrello:riepilogo' %}" class="nav-link">Carrello</a>
+      <a href="{% url 'negozi:index' %}" class="nav-link">Negozi</a>
+      <a href="{% url 'forum:index' %}" class="nav-link">Forum</a>
+    </div>
+    <div class="nav-auth">
+      <a href="{% url 'utenti:index' %}" class="nav-link">Account</a>
+    </div>
+  </div>
+</nav>

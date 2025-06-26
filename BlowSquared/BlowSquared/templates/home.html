@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - BlowSquared{% endblock %}
+
+{% block content %}
+  <section class="hero-section">
+    <div class="carousel-container">
+      <div class="carousel">
+        <div class="carousel-item active" data-alt="Vista Frontale">
+          <img src="{% static 'img/frontView.png' %}" alt="Vista frontale">
+        </div>
+        <div class="carousel-item" data-alt="Vista Laterale">
+          <img src="{% static 'img/latView.png' %}" alt="Vista laterale">
+        </div>
+        <div class="carousel-item" data-alt="Vista dall'Alto">
+          <img src="{% static 'img/upView.png' %}" alt="Vista dall'alto">
+        </div>
+      </div>
+      
+      <!-- Navigation arrows -->
+      <button class="carousel-nav carousel-prev" aria-label="Immagine precedente">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="carousel-nav carousel-next" aria-label="Immagine successiva">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      
+      <!-- Dots indicator -->
+      <div class="carousel-indicators">
+        <button class="carousel-dot active" data-slide="0" aria-label="Vai alla prima immagine"></button>
+        <button class="carousel-dot" data-slide="1" aria-label="Vai alla seconda immagine"></button>
+        <button class="carousel-dot" data-slide="2" aria-label="Vai alla terza immagine"></button>
+      </div>
+      
+      <div class="carousel-overlay">
+        <h1 class="hero-title">Blow²</h1>
+        <p class="hero-subtitle">Il supermercato digitale che raddoppia il tuo risparmio</p>
+        <a href="{% url 'prodotti:list' %}" class="btn-hero">Esplora i prodotti</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="main-content">
+    <div class="features-section">
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3 class="feature-title">Prodotti di Qualità</h3>
+        <p>Selezione curata dei migliori prodotti per la tua famiglia</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3 class="feature-title">Prezzi Convenienti</h3>
+        <p>Risparmia fino al 50% sui tuoi acquisti quotidiani</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🚚</div>
+        <h3 class="feature-title">Consegna Rapida</h3>
+        <p>Consegna gratuita in 24h per ordini superiori a €30</p>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/carousel.js' %}"></script>
+{% endblock %}

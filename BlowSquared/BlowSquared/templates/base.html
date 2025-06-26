@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}BlowSquared{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/loader.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <!-- Theater Loader -->
+  <div id="page-loader" class="page-loader">
+    <div class="stage">
+      <div class="stage-lights"></div>
+      
+      <div class="curtain-container">
+        <div class="curtain-rod"></div>
+        <div class="curtain-left"></div>
+        <div class="curtain-right"></div>
+        <div class="tieback-left"></div>
+        <div class="tieback-right"></div>
+      </div>
+      
+      <div class="pre-show">
+        <h1 class="show-title">Blow²</h1>
+        <p class="show-subtitle">Benvenuti nel nostro supermercato digitale</p>
+        
+        <div class="loading-animation">
+          <div class="theater-dots">
+            <div class="theater-dot"></div>
+            <div class="theater-dot"></div>
+            <div class="theater-dot"></div>
+          </div>
+        </div>
+        
+        <div class="audio-controls">
+          <button id="audio-toggle" class="audio-btn" aria-label="Attiva/Disattiva audio">
+            🎵
+          </button>
+        </div>
+      </div>
+      
+      <div class="curtain-progress">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <span class="progress-text">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Element with aggressive attributes -->
+  <audio id="loading-audio" preload="auto" autoplay loop="false" controls="false">
+    <source src="{% static 'audio/loading.mp3' %}" type="audio/mpeg">
+    <source src="{% static 'audio/loading.ogg' %}" type="audio/ogg">
+    Il tuo browser non supporta l'elemento audio.
+  </audio>
+
+  <header>
+    {% include 'includes/navbar.html' %}
+  </header>
+  
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  
+  {% include 'includes/footer.html' %}
+  
+  <script src="{% static 'js/loader.js' %}"></script>
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
