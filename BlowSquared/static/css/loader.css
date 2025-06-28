@@ -339,24 +339,6 @@
   }
 }
 
-/* Spotlight Effect */
-.spotlight {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(ellipse at center, 
-    rgba(255, 255, 200, 0.3) 0%, 
-    rgba(255, 255, 200, 0.1) 40%, 
-    transparent 70%
-  );
-  border-radius: 50%;
-  opacity: 0;
-  animation: spotlight 2s ease-in-out 0.5s infinite alternate;
-}
-
 @keyframes spotlight {
   0% { opacity: 0; transform: translateX(-50%) scale(0.8); }
   100% { opacity: 1; transform: translateX(-50%) scale(1.2); }
@@ -388,3 +370,4 @@
     font-size: 1.5rem;
   }
 }
+

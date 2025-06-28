@@ -47,3 +47,288 @@
   color: var(--dark-color);
   line-height: 1.6;
 }
+
+/* Stats Section - IMPORTANTE: Stili per le statistiche */
+.stats-section {
+  padding: 4rem 0;
+  background: white;
+  border-top: 2px solid rgba(62, 116, 71, 0.1);
+  border-bottom: 2px solid rgba(62, 116, 71, 0.1);
+}
+
+.stats-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+  transition: transform 0.3s ease;
+  padding: 2rem 1rem;
+}
+
+.stat-item:hover {
+  transform: translateY(-10px);
+}
+
+.stat-number {
+  font-family: var(--font-primary);
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--secondary-color);
+  margin-bottom: 0.5rem;
+  text-shadow: 2px 2px 4px rgba(222, 174, 82, 0.2);
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.stat-item:hover .stat-number {
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.stat-label {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+  display: block;
+}
+
+.stat-item:hover .stat-label {
+  color: var(--secondary-color);
+}
+
+/* Le Nostre Eccellenze Section */
+.excellences-section {
+  padding: 6rem 0;
+  background: linear-gradient(135deg, #f8faf9 0%, #e8f5e8 100%);
+  position: relative;
+}
+
+.excellences-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+}
+
+.excellences-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.excellences-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.excellences-title {
+  font-family: var(--font-primary);
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.excellences-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+  border-radius: 2px;
+}
+
+.excellences-subtitle {
+  font-size: 1.3rem;
+  color: var(--dark-color);
+  opacity: 0.8;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.excellences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem;
+  margin-bottom: 4rem;
+}
+
+.excellence-card {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(62, 116, 71, 0.1);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 2px solid transparent;
+}
+
+.excellence-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(62, 116, 71, 0.15);
+  border-color: var(--secondary-color);
+}
+
+.excellence-image-container {
+  position: relative;
+  height: 250px;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--light-color), #fff);
+}
+
+.excellence-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--primary-color);
+}
+
+.placeholder-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.7;
+}
+
+.excellence-placeholder span {
+  font-size: 1.2rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.excellence-badge {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(222, 174, 82, 0.3);
+}
+
+.excellence-info {
+  padding: 2rem;
+}
+
+.excellence-name {
+  font-family: var(--font-primary);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.excellence-category {
+  color: var(--secondary-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 1rem;
+}
+
+.excellence-price {
+  font-family: var(--font-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.excellence-description {
+  color: var(--dark-color);
+  line-height: 1.6;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.excellences-cta {
+  text-align: center;
+}
+
+.btn-excellences {
+  display: inline-block;
+  background: var(--primary-color);
+  color: white;
+  padding: 1.2rem 3rem;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(62, 116, 71, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-excellences:hover {
+  background: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(62, 116, 71, 0.4);
+}
+
+/* Responsive for stats */
+@media (max-width: 768px) {
+  .stats-section {
+    padding: 3rem 0;
+  }
+  
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .stat-number {
+    font-size: 2.5rem;
+  }
+  
+  .stat-item {
+    padding: 1.5rem 0.5rem;
+  }
+}
+
+/* Responsive for excellences */
+@media (max-width: 768px) {
+  .excellences-section {
+    padding: 4rem 0;
+  }
+  
+  .excellences-title {
+    font-size: 2.5rem;
+  }
+  
+  .excellences-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .excellences-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .excellence-info {
+    padding: 1.5rem;
+  }
+}

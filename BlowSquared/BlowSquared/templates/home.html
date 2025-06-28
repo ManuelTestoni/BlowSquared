@@ -39,8 +39,30 @@
       
       <div class="carousel-overlay">
         <h1 class="hero-title">Blow²</h1>
-        <p class="hero-subtitle">Il supermercato digitale che raddoppia il tuo risparmio</p>
+        <p class="hero-subtitle">Il supermercato digitale che eleva al quadrato il tuo risparmio</p>
         <a href="{% url 'prodotti:list' %}" class="btn-hero">Esplora i prodotti</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Stats moved here -->
+  <section class="stats-section">
+    <div class="stats-container">
+      <div class="stat-item">
+        <div class="stat-number">15+</div>
+        <div class="stat-label">Anni di Esperienza Media</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">6</div>
+        <div class="stat-label">Professionisti Certificati</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">Soddisfazione Cliente</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Assistenza Disponibile</div>
       </div>
     </div>
   </section>
@@ -64,12 +86,237 @@
       </div>
     </div>
   </section>
+
+  <!-- Le Nostre Eccellenze Section -->
+  <section class="excellences-section">
+    <div class="excellences-container">
+      <div class="excellences-header">
+        <h2 class="excellences-title">Le Nostre Eccellenze</h2>
+        <p class="excellences-subtitle">Scopri i prodotti selezionati che rendono unica la tua esperienza di acquisto</p>
+      </div>
+
+      <div class="excellences-grid">
+        <!-- Placeholder per prodotti che verranno caricati successivamente -->
+        <div class="excellence-card">
+          <div class="excellence-image-container">
+            <div class="excellence-placeholder">
+              <div class="placeholder-icon">🍕</div>
+              <span>Prodotto 1</span>
+            </div>
+            <div class="excellence-badge">Premium</div>
+          </div>
+          <div class="excellence-info">
+            <h3 class="excellence-name">Prodotto di Eccellenza 1</h3>
+            <p class="excellence-category">Categoria Premium</p>
+            <div class="excellence-price">€XX.XX</div>
+            <p class="excellence-description">
+              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
+            </p>
+          </div>
+        </div>
+
+        <div class="excellence-card">
+          <div class="excellence-image-container">
+            <div class="excellence-placeholder">
+              <div class="placeholder-icon">🥖</div>
+              <span>Prodotto 2</span>
+            </div>
+            <div class="excellence-badge">Biologico</div>
+          </div>
+          <div class="excellence-info">
+            <h3 class="excellence-name">Prodotto di Eccellenza 2</h3>
+            <p class="excellence-category">Categoria Bio</p>
+            <div class="excellence-price">€XX.XX</div>
+            <p class="excellence-description">
+              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
+            </p>
+          </div>
+        </div>
+
+        <div class="excellence-card">
+          <div class="excellence-image-container">
+            <div class="excellence-placeholder">
+              <div class="placeholder-icon">🧀</div>
+              <span>Prodotto 3</span>
+            </div>
+            <div class="excellence-badge">Artigianale</div>
+          </div>
+          <div class="excellence-info">
+            <h3 class="excellence-name">Prodotto di Eccellenza 3</h3>
+            <p class="excellence-category">Categoria Gourmet</p>
+            <div class="excellence-price">€XX.XX</div>
+            <p class="excellence-description">
+              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
+            </p>
+          </div>
+        </div>
+
+        <div class="excellence-card">
+          <div class="excellence-image-container">
+            <div class="excellence-placeholder">
+              <div class="placeholder-icon">🍷</div>
+              <span>Prodotto 4</span>
+            </div>
+            <div class="excellence-badge">Locale</div>
+          </div>
+          <div class="excellence-info">
+            <h3 class="excellence-name">Prodotto di Eccellenza 4</h3>
+            <p class="excellence-category">Categoria Vini</p>
+            <div class="excellence-price">€XX.XX</div>
+            <p class="excellence-description">
+              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="excellences-cta">
+        <a href="{% url 'prodotti:list' %}" class="btn-excellences">Vedi Tutti i Prodotti</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team-section">
+    <div class="team-container">
+      <div class="team-header">
+        <h2 class="team-title">Il Nostro Team</h2>
+        <p class="team-subtitle">Professionisti dedicati alla vostra esperienza di acquisto perfetta</p>
+      </div>
+
+      <div class="team-grid">
+        <!-- Dirigente 1 -->
+        <div class="team-card" data-role="management">
+          <div class="team-image-container">
+            <img src="{% static 'img/alessandro_verdi.png' %}" alt="Alessandro Verdi" class="team-image">
+            <div class="team-overlay">
+              <span class="team-badge">Direttore</span>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Dott. Alessandro Verdi</h3>
+            <h4 class="team-position">Direttore Generale</h4>
+            <p class="team-description">
+              Con oltre 15 anni di esperienza nel retail di lusso, Alessandro guida la nostra vision di eccellenza. 
+              La sua leadership garantisce standard qualitativi elevati e un'esperienza cliente sempre al top. 
+              Specializzato in gestione strategica e sviluppo commerciale, assicura che ogni aspetto del nostro 
+              supermercato rifletta i più alti standard di qualità e servizio.
+            </p>
+          </div>
+        </div>
+
+        <!-- Dirigente 2 -->
+        <div class="team-card" data-role="management">
+          <div class="team-image-container">
+            <img src="{% static 'img/sofia_bianchi.png' %}" alt="Sofia Bianchi" class="team-image">
+            <div class="team-overlay">
+              <span class="team-badge">Vice Direttore</span>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Dott.ssa Sofia Bianchi</h3>
+            <h4 class="team-position">Vice Direttore Operations</h4>
+            <p class="team-description">
+              Master in Business Administration e esperta in ottimizzazione dei processi, Sofia coordina tutte 
+              le operazioni quotidiane con precisione maniacale. La sua competenza in logistics e supply chain 
+              management garantisce che i prodotti migliori arrivino sempre freschi sugli scaffali. 
+              È il nostro punto di riferimento per innovazione e efficienza operativa.
+            </p>
+          </div>
+        </div>
+
+        <!-- Addetto Salumi -->
+        <div class="team-card" data-role="specialist">
+          <div class="team-image-container">
+            <img src="{% static 'img/marco_salumi.png' %}" alt="Marco Salumi" class="team-image">
+            <div class="team-overlay">
+              <span class="team-badge">Specialista</span>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Marco Salumi</h3>
+            <h4 class="team-position">Responsabile Banco Salumi</h4>
+            <p class="team-description">
+              Maestro salumiere con certificazione professionale, Marco seleziona personalmente ogni prodotto 
+              da fornitori di eccellenza. La sua esperienza ventennale nel settore garantisce la massima qualità 
+              di salumi, formaggi e specialità gastronomiche. Conosce la provenienza di ogni prodotto e può 
+              consigliare gli abbinamenti perfetti per ogni occasione.
+            </p>
+          </div>
+        </div>
+
+        <!-- Addetto Pesce -->
+        <div class="team-card" data-role="specialist">
+          <div class="team-image-container">
+            <img src="{% static 'img/elena_pesci.png' %}" alt="Elena Pesci" class="team-image">
+            <div class="team-overlay">
+              <span class="team-badge">Specialista</span>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Elena Pesci</h3>
+            <h4 class="team-position">Responsabile Banco Pesce</h4>
+            <p class="team-description">
+              Diplomata in tecnologie alimentari e appassionata di mare, Elena garantisce freschezza e qualità 
+              eccezionali. Collabora direttamente con pescatori locali e fornitori certificati per offrire 
+              solo il pesce più fresco. La sua competenza in conservazione e preparazione assicura prodotti 
+              ittici di altissima qualità, sempre nel rispetto delle normative igienico-sanitarie.
+            </p>
+          </div>
+        </div>
+
+        <!-- Addetto Scaffali 1 -->
+        <div class="team-card" data-role="staff">
+          <div class="team-image-container">
+            <img src="{% static 'img/luca_scaffali.png' %}" alt="Luca Scaffali" class="team-image">
+            <div class="team-overlay">
+              <span class="team-badge">Staff</span>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Luca Scaffali</h3>
+            <h4 class="team-position">Addetto Prodotti Freschi</h4>
+            <p class="team-description">
+              Giovane e dinamico, Luca è il nostro esperto di prodotti freschi e biologici. La sua energia e 
+              precisione garantiscono che ogni prodotto sia sempre perfettamente posizionato e fresco. 
+              Costantemente aggiornato sulle novità del settore, è sempre pronto a consigliare i clienti 
+              sui prodotti più innovativi e salutari del nostro assortimento.
+            </p>
+          </div>
+        </div>
+
+        <!-- Addetto Scaffali 2 -->
+        <div class="team-card" data-role="staff">
+          <div class="team-image-container">
+            <img src="{% static 'img/anna_riordino.png' %}" alt="Anna Riordino" class="team-image">
+            <div class="team-overlay">
+              <span class="team-badge">Staff</span>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Anna Riordino</h3>
+            <h4 class="team-position">Addetta Riordino e Assistenza</h4>
+            <p class="team-description">
+              Con un occhio attento ai dettagli e una passione per l'ordine, Anna mantiene il nostro 
+              supermercato sempre impeccabile. La sua dedizione e il suo sorriso accogliente creano 
+              un ambiente piacevole per lo shopping. Specializzata in customer service, è sempre 
+              disponibile ad aiutare i clienti a trovare esattamente quello che cercano.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Removed team stats from here -->
+    </div>
+  </section>
 {% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/team.css' %}">
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/carousel.js' %}"></script>
+<script src="{% static 'js/team.js' %}"></script>
 {% endblock %}
