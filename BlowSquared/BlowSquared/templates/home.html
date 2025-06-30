@@ -96,78 +96,59 @@
       </div>
 
       <div class="excellences-grid">
-        <!-- Placeholder per prodotti che verranno caricati successivamente -->
+        {% for prodotto in prodotti_eccellenza %}
+        <div class="excellence-card">
+          <div class="excellence-image-container">
+            {% if prodotto.foto %}
+              <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="excellence-image">
+            {% else %}
+              <div class="excellence-placeholder">
+                <div class="placeholder-icon">📦</div>
+                <span>{{ prodotto.nome|truncatechars:20 }}</span>
+              </div>
+            {% endif %}
+            <div class="excellence-badge">{{ prodotto.badge }}</div>
+            {% if prodotto.sconto > 0 %}
+              <div class="excellence-discount">-{{ prodotto.sconto|floatformat:0 }}%</div>
+            {% endif %}
+          </div>
+          <div class="excellence-info">
+            <h3 class="excellence-name">{{ prodotto.nome|truncatechars:40 }}</h3>
+            <p class="excellence-category">{{ prodotto.get_categoria_display }} - {{ prodotto.marca }}</p>
+            <div class="excellence-price">
+              {% if prodotto.sconto > 0 %}
+                <span class="original-price">€{{ prodotto.prezzo }}</span>
+                <span class="discounted-price">€{{ prodotto.prezzo_scontato|floatformat:2 }}</span>
+              {% else %}
+                €{{ prodotto.prezzo }}
+              {% endif %}
+            </div>
+            <p class="excellence-description">
+              {{ prodotto.descrizione|truncatechars:120 }}
+            </p>
+            <div class="excellence-meta">
+              <span class="excellence-weight">{{ prodotto.peso }}</span>
+              {% if prodotto.numero_recensioni > 0 %}
+                <span class="excellence-reviews">{{ prodotto.numero_recensioni }} recensioni</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <!-- Fallback se non ci sono prodotti -->
         <div class="excellence-card">
           <div class="excellence-image-container">
             <div class="excellence-placeholder">
-              <div class="placeholder-icon">🍕</div>
-              <span>Prodotto 1</span>
+              <div class="placeholder-icon">🛒</div>
+              <span>Prodotti in arrivo</span>
             </div>
-            <div class="excellence-badge">Premium</div>
           </div>
           <div class="excellence-info">
-            <h3 class="excellence-name">Prodotto di Eccellenza 1</h3>
-            <p class="excellence-category">Categoria Premium</p>
-            <div class="excellence-price">€XX.XX</div>
-            <p class="excellence-description">
-              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
-            </p>
+            <h3 class="excellence-name">Prodotti d'eccellenza in arrivo</h3>
+            <p class="excellence-description">I nostri prodotti premium saranno presto disponibili.</p>
           </div>
         </div>
-
-        <div class="excellence-card">
-          <div class="excellence-image-container">
-            <div class="excellence-placeholder">
-              <div class="placeholder-icon">🥖</div>
-              <span>Prodotto 2</span>
-            </div>
-            <div class="excellence-badge">Biologico</div>
-          </div>
-          <div class="excellence-info">
-            <h3 class="excellence-name">Prodotto di Eccellenza 2</h3>
-            <p class="excellence-category">Categoria Bio</p>
-            <div class="excellence-price">€XX.XX</div>
-            <p class="excellence-description">
-              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
-            </p>
-          </div>
-        </div>
-
-        <div class="excellence-card">
-          <div class="excellence-image-container">
-            <div class="excellence-placeholder">
-              <div class="placeholder-icon">🧀</div>
-              <span>Prodotto 3</span>
-            </div>
-            <div class="excellence-badge">Artigianale</div>
-          </div>
-          <div class="excellence-info">
-            <h3 class="excellence-name">Prodotto di Eccellenza 3</h3>
-            <p class="excellence-category">Categoria Gourmet</p>
-            <div class="excellence-price">€XX.XX</div>
-            <p class="excellence-description">
-              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
-            </p>
-          </div>
-        </div>
-
-        <div class="excellence-card">
-          <div class="excellence-image-container">
-            <div class="excellence-placeholder">
-              <div class="placeholder-icon">🍷</div>
-              <span>Prodotto 4</span>
-            </div>
-            <div class="excellence-badge">Locale</div>
-          </div>
-          <div class="excellence-info">
-            <h3 class="excellence-name">Prodotto di Eccellenza 4</h3>
-            <p class="excellence-category">Categoria Vini</p>
-            <div class="excellence-price">€XX.XX</div>
-            <p class="excellence-description">
-              Descrizione del prodotto di eccellenza che verrà sostituita con contenuti reali dal database.
-            </p>
-          </div>
-        </div>
+        {% endfor %}
       </div>
 
       <div class="excellences-cta">
@@ -305,8 +286,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Removed team stats from here -->
     </div>
   </section>
 {% endblock %}
@@ -320,3 +299,5 @@
 <script src="{% static 'js/carousel.js' %}"></script>
 <script src="{% static 'js/team.js' %}"></script>
 {% endblock %}
+
+
