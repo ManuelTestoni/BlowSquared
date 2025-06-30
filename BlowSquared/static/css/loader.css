@@ -371,3 +371,30 @@
   }
 }
 
+/* Safari-specific optimizations */
+@supports (-webkit-appearance: none) {
+  .page-loader {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+  
+  .theater-dots {
+    -webkit-animation: none;
+    animation: none;
+  }
+  
+  .theater-dot {
+    -webkit-animation-duration: 1.2s;
+    animation-duration: 1.2s;
+  }
+}
+
+/* Riduzione animazioni per Safari */
+@media (prefers-reduced-motion: reduce) {
+  .page-loader * {
+    animation-duration: 0.3s !important;
+  }
+}
+

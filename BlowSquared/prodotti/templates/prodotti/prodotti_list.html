@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Prodotti - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Hero Section per i Prodotti -->
+<section class="products-hero">
+  <div class="products-hero-content">
+    <h1 class="products-title">I Nostri Prodotti</h1>
+    <p class="products-subtitle">Scopri la nostra selezione di prodotti di qualità premium</p>
+    <div class="products-stats">
+      <span class="products-count">{{ total_prodotti }} prodotti disponibili</span>
+    </div>
+  </div>
+</section>
+
+<!-- Sezione Ricerca e Filtri -->
+<section class="search-filters-section">
+  <div class="search-filters-container">
+    <!-- Barra di Ricerca -->
+    <div class="search-bar-container">
+      <div class="search-input-wrapper">
+        <input type="text" id="search-input" placeholder="Cerca prodotti..." value="{{ search_query }}" autocomplete="off">
+        <button class="search-btn" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtri -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="categoria-filter">Categoria:</label>
+        <select id="categoria-filter">
+          <option value="">Tutte le categorie</option>
+          {% for categoria_key, categoria_nome in categorie %}
+            <option value="{{ categoria_key }}" {% if categoria_key == categoria_selected %}selected{% endif %}>
+              {{ categoria_nome }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="prezzo-min">Prezzo min:</label>
+        <input type="number" id="prezzo-min" placeholder="€ min" value="{{ prezzo_min }}" step="0.01">
+      </div>
+
+      <div class="filter-group">
+        <label for="prezzo-max">Prezzo max:</label>
+        <input type="number" id="prezzo-max" placeholder="€ max" value="{{ prezzo_max }}" step="0.01">
+      </div>
+
+      <div class="filter-group">
+        <label for="ordine-filter">Ordina per:</label>
+        <select id="ordine-filter">
+          <option value="nome" {% if ordine_selected == 'nome' %}selected{% endif %}>Nome A-Z</option>
+          <option value="prezzo_asc" {% if ordine_selected == 'prezzo_asc' %}selected{% endif %}>Prezzo crescente</option>
+          <option value="prezzo_desc" {% if ordine_selected == 'prezzo_desc' %}selected{% endif %}>Prezzo decrescente</option>
+          <option value="categoria" {% if ordine_selected == 'categoria' %}selected{% endif %}>Categoria</option>
+          <option value="marca" {% if ordine_selected == 'marca' %}selected{% endif %}>Marca</option>
+          <option value="sconto" {% if ordine_selected == 'sconto' %}selected{% endif %}>Maggior sconto</option>
+        </select>
+      </div>
+
+      <button class="clear-filters-btn" type="button">Pulisci filtri</button>
+    </div>
+  </div>
+</section>
+
+<!-- Sezione Prodotti -->
+<section class="products-section">
+  <div class="products-container">
+    <!-- Loading indicator -->
+    <div class="loading-indicator" id="loading-indicator" style="display: none;">
+      <div class="loading-spinner"></div>
+      <span>Caricamento...</span>
+    </div>
+
+    <!-- Griglia Prodotti -->
+    <div class="products-grid" id="products-grid">
+      {% for prodotto in prodotti %}
+      <div class="product-card">
+        <div class="product-image-container">
+          {% if prodotto.foto %}
+            <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="product-image">
+          {% else %}
+            <div class="product-placeholder">
+              <div class="placeholder-icon">📦</div>
+              <span>{{ prodotto.nome|truncatechars:15 }}</span>
+            </div>
+          {% endif %}
+          
+          {% if prodotto.sconto > 0 %}
+            <div class="product-discount">-{{ prodotto.sconto|floatformat:0 }}%</div>
+          {% endif %}
+          
+          <div class="product-category-badge">{{ prodotto.get_categoria_display }}</div>
+          
+          {% if prodotto.stock <= 5 and prodotto.stock > 0 %}
+            <div class="product-low-stock">Ultime {{ prodotto.stock }} disponibili</div>
+          {% elif prodotto.stock == 0 %}
+            <div class="product-out-stock">Esaurito</div>
+          {% endif %}
+        </div>
+        
+        <div class="product-info">
+          <h3 class="product-name">{{ prodotto.nome|truncatechars:50 }}</h3>
+          <p class="product-brand">{{ prodotto.marca }}</p>
+          
+          <div class="product-price">
+            {% if prodotto.sconto > 0 %}
+              <span class="original-price">€{{ prodotto.prezzo }}</span>
+              <span class="discounted-price">€{{ prodotto.prezzo_scontato|floatformat:2 }}</span>
+            {% else %}
+              <span class="current-price">€{{ prodotto.prezzo }}</span>
+            {% endif %}
+          </div>
+          
+          <p class="product-description">
+            {{ prodotto.descrizione|truncatechars:100 }}
+          </p>
+          
+          <div class="product-meta">
+            <span class="product-weight">{{ prodotto.peso }}</span>
+            {% if prodotto.numero_recensioni > 0 %}
+              <span class="product-reviews">{{ prodotto.numero_recensioni }} recensioni</span>
+            {% endif %}
+          </div>
+          
+          <div class="product-actions">
+            <button class="btn-add-cart" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
+              {% if prodotto.stock == 0 %}
+                Non disponibile
+              {% else %}
+                Aggiungi al carrello
+              {% endif %}
+            </button>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="no-products">
+        <div class="no-products-icon">🛒</div>
+        <h3>Nessun prodotto trovato</h3>
+        <p>Prova a modificare i filtri di ricerca</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/prodotti.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/prodotti-search.js' %}"></script>
+{% endblock %}

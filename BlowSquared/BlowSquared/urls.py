@@ -18,19 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import home
+from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', home, name='home'),
+    path('', views.home, name='home'),
     path('prodotti/', include('prodotti.urls')),
-    path('carrello/', include('carrello.urls')),
-    path('utenti/', include('utenti.urls')),
-    path('negozi/', include('negozi.urls')),
-    path('forum/', include('forum.urls')),
+    # path('utenti/', include('utenti.urls')),
+    # path('carrello/', include('carrello.urls')),
+    # path('negozi/', include('negozi.urls')),
+    # path('admin-dashboard/', include('admin_dashboard.urls')),
+    # path('forum/', include('forum.urls')),
 ]
 
-
+# Servi i file media durante lo sviluppo
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

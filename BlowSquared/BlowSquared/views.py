@@ -2,9 +2,6 @@ from django.shortcuts import render
 from prodotti.models import Prodotto
 
 def home(request):
-    # DEBUG: Verifica quanti prodotti ci sono
-    print(f"DEBUG: Numero totale prodotti: {Prodotto.objects.count()}")
-    
     # Recupera i 4 prodotti d'eccellenza specifici tramite codice a barre
     codici_eccellenza = [
         '8011111000001',  # Aceto Balsamico
@@ -18,13 +15,9 @@ def home(request):
     for codice in codici_eccellenza:
         try:
             prodotto = Prodotto.objects.get(codice_a_barre=codice)
-            print(f"DEBUG: Trovato prodotto {prodotto.nome} con foto: {prodotto.foto}")
             prodotti_eccellenza.append(prodotto)
         except Prodotto.DoesNotExist:
-            print(f"DEBUG: Prodotto con codice {codice} non trovato")
             continue
-    
-    print(f"DEBUG: Prodotti eccellenza trovati: {len(prodotti_eccellenza)}")
     
     # Badge mapping per ogni prodotto
     badge_mapping = {
