@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accedi - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="auth-background">
+    <div class="auth-pattern"></div>
+    <div class="auth-gradient"></div>
+  </div>
+  
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1 class="auth-title">Bentornato!</h1>
+        <p class="auth-subtitle">Accedi al tuo account Blow²</p>
+      </div>
+      
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}" class="form-label">
+            <span class="label-icon">👤</span>
+            Username
+          </label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="form-errors">
+              {% for error in form.username.errors %}
+                <span class="error-message">{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="form-group">
+          <label for="{{ form.password.id_for_label }}" class="form-label">
+            <span class="label-icon">🔒</span>
+            Password
+          </label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="form-errors">
+              {% for error in form.password.errors %}
+                <span class="error-message">{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+        
+        <button type="submit" class="auth-btn">
+          <span class="btn-text">Accedi</span>
+          <span class="btn-icon">🚀</span>
+        </button>
+      </form>
+      
+      <div class="auth-footer">
+        <p class="auth-switch">
+          Non hai ancora un account? 
+          <a href="{% url 'utenti:signup' %}" class="auth-link">Registrati ora</a>
+        </p>
+      </div>
+      
+      <div class="auth-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}

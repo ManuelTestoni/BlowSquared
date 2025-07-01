@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lista.nome }} - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="list-detail-section">
+  <div class="list-detail-container">
+    <div class="list-detail-header">
+      <div class="header-content">
+        <h1 class="list-title">{{ lista.nome }}</h1>
+        {% if lista.descrizione %}
+        <p class="list-description">{{ lista.descrizione }}</p>
+        {% endif %}
+        <div class="list-meta">
+          <span class="meta-item">
+            <span class="meta-icon">📅</span>
+            Creata il {{ lista.data_creazione|date:"d/m/Y" }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-icon">✏️</span>
+            Modificata il {{ lista.data_modifica|date:"d/m/Y H:i" }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        {% if not lista.completata %}
+        <a href="{% url 'utenti:ordina_lista' lista.id %}" class="btn-order">
+          <span class="btn-icon">🛒</span>
+          Ordina Lista
+        </a>
+        {% endif %}
+        <a href="{% url 'utenti:liste_spesa' %}" class="btn-back">Torna alle Liste</a>
+      </div>
+    </div>
+    
+    <div class="list-summary">
+      <div class="summary-card">
+        <div class="summary-item">
+          <span class="summary-icon">📦</span>
+          <div class="summary-info">
+            <span class="summary-number">{{ lista.numero_prodotti }}</span>
+            <span class="summary-label">Prodotti</span>
+          </div>
+        </div>
+        <div class="summary-item">
+          <span class="summary-icon">🔢</span>
+          <div class="summary-info">
+            <span class="summary-number">{{ lista.quantita_totale }}</span>
+            <span class="summary-label">Quantità Totale</span>
+          </div>
+        </div>
+        <div class="summary-item">
+          <span class="summary-icon">💰</span>
+          <div class="summary-info">
+            <span class="summary-number">€{{ lista.prezzo_stimato|floatformat:2 }}</span>
+            <span class="summary-label">Prezzo Stimato</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="products-section">
+      <h3 class="products-title">Prodotti nella Lista</h3>
+      
+      {% if elementi %}
+      <div class="products-list">
+        {% for elemento in elementi %}
+        <div class="product-item {% if elemento.acquisito %}acquired{% endif %}">
+          <div class="product-info">
+            <div class="product-image">
+              {% if elemento.prodotto.foto %}
+                <img src="{{ elemento.prodotto.foto.url }}" alt="{{ elemento.prodotto.nome }}">
+              {% else %}
+                <div class="product-placeholder">📦</div>
+              {% endif %}
+            </div>
+            
+            <div class="product-details">
+              <h4 class="product-name">{{ elemento.prodotto.nome }}</h4>
+              <p class="product-brand">{{ elemento.prodotto.marca }}</p>
+              <div class="product-price">
+                {% if elemento.prodotto.sconto > 0 %}
+                  <span class="original-price">€{{ elemento.prodotto.prezzo }}</span>
+                  <span class="discounted-price">€{{ elemento.prezzo_totale|floatformat:2 }}</span>
+                {% else %}
+                  <span class="current-price">€{{ elemento.prezzo_totale|floatformat:2 }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <div class="product-quantity">
+            <span class="quantity-label">Quantità:</span>
+            <span class="quantity-value">{{ elemento.quantita }}</span>
+          </div>
+          
+          <div class="product-priority">
+            <span class="priority-emoji">{{ elemento.get_priorita_display_emoji }}</span>
+            <span class="priority-text">{{ elemento.get_priorita_display }}</span>
+          </div>
+          
+          {% if elemento.note %}
+          <div class="product-notes">
+            <span class="notes-icon">📝</span>
+            <span class="notes-text">{{ elemento.note }}</span>
+          </div>
+          {% endif %}
+          
+          <div class="product-actions">
+            {% if not lista.completata %}
+            <a href="{% url 'utenti:rimuovi_prodotto_lista' lista.id elemento.id %}" 
+               class="btn-remove"
+               onclick="return confirm('Rimuovere {{ elemento.prodotto.nome }} dalla lista?')">
+              <span class="btn-icon">🗑️</span>
+              Rimuovi
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-products">
+        <div class="empty-icon">📭</div>
+        <h4>Lista Vuota</h4>
+        <p>Non ci sono ancora prodotti in questa lista.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/liste-spesa.css' %}">
+{% endblock %}

@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('prodotti/', include('prodotti.urls')),
-    # path('utenti/', include('utenti.urls')),
+    path('utenti/', include('utenti.urls')),
     # path('carrello/', include('carrello.urls')),
     # path('negozi/', include('negozi.urls')),
     # path('admin-dashboard/', include('admin_dashboard.urls')),

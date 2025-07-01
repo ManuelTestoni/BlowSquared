@@ -99,14 +99,16 @@
         {% for prodotto in prodotti_eccellenza %}
         <div class="excellence-card">
           <div class="excellence-image-container">
-            {% if prodotto.foto %}
-              <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="excellence-image">
-            {% else %}
-              <div class="excellence-placeholder">
-                <div class="placeholder-icon">📦</div>
-                <span>{{ prodotto.nome|truncatechars:20 }}</span>
-              </div>
-            {% endif %}
+            <a href="{% url 'prodotti:detail' prodotto.id %}" class="excellence-image-link">
+              {% if prodotto.foto %}
+                <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="excellence-image">
+              {% else %}
+                <div class="excellence-placeholder">
+                  <div class="placeholder-icon">📦</div>
+                  <span>{{ prodotto.nome|truncatechars:20 }}</span>
+                </div>
+              {% endif %}
+            </a>
             <div class="excellence-badge">{{ prodotto.badge }}</div>
             {% if prodotto.sconto > 0 %}
               <div class="excellence-discount">-{{ prodotto.sconto|floatformat:0 }}%</div>

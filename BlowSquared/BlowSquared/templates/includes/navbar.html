@@ -12,7 +12,15 @@
       <a href="#forum" class="nav-link">Forum</a>
     </div>
     <div class="nav-auth">
-      <a href="#account" class="nav-link">Account</a>
+      {% if user.is_authenticated %}
+        <div class="user-menu">
+          <span class="user-greeting">Ciao, {{ user.username }}!</span>
+          <a href="{% url 'utenti:profile' %}" class="nav-link">Profilo</a>
+          <a href="{% url 'utenti:logout' %}" class="nav-link logout-link">Logout</a>
+        </div>
+      {% else %}
+        <a href="{% url 'utenti:signup' %}" class="nav-link">Account</a>
+      {% endif %}
     </div>
   </div>
 </nav>

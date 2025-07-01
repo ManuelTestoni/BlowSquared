@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q
 from .models import Prodotto
@@ -101,3 +101,27 @@ def list(request):
     }
     
     return render(request, 'prodotti/prodotti_list.html', context)
+
+def detail(request, product_id):
+    """Vista per il dettaglio di un singolo prodotto"""
+    
+    # Recupera il prodotto specifico o restituisce 404
+    prodotto = get_object_or_404(Prodotto, id=product_id)
+    
+    # Calcola prezzo scontato e risparmio se presente
+    if prodotto.sconto > 0:
+        prodotto.prezzo_scontato = prodotto.prezzo * (100 - prodotto.sconto) / 100
+        prodotto.risparmio = prodotto.prezzo - prodotto.prezzo_scontato
+    else:
+        prodotto.prezzo_scontato = prodotto.prezzo
+        prodotto.risparmio = 0
+    
+    # Per il futuro sistema di raccomandazioni - ora vuoto
+    prodotti_raccomandati = []
+    
+    context = {
+        'prodotto': prodotto,
+        'prodotti_raccomandati': prodotti_raccomandati,
+    }
+    
+    return render(request, 'prodotti/product_detail.html', context)

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Logout - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="auth-background">
+    <div class="auth-pattern"></div>
+    <div class="auth-gradient"></div>
+  </div>
+  
+  <div class="auth-container">
+    <div class="auth-card logout-card">
+      <div class="auth-header">
+        <h1 class="auth-title">Arrivederci!</h1>
+        <p class="auth-subtitle">Sei sicuro di voler uscire dal tuo account?</p>
+      </div>
+      
+      <div class="logout-actions">
+        <form method="post" class="logout-form">
+          {% csrf_token %}
+          <button type="submit" class="auth-btn logout-btn">
+            <span class="btn-text">Sì, esci</span>
+            <span class="btn-icon">👋</span>
+          </button>
+        </form>
+        
+        <a href="{% url 'home' %}" class="auth-btn cancel-btn">
+          <span class="btn-text">Annulla</span>
+          <span class="btn-icon">↩️</span>
+        </a>
+      </div>
+      
+      <div class="auth-decoration">
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+        <div class="decoration-circle"></div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}

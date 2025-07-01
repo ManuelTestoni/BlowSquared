@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Il Mio Profilo - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Profile Header -->
+<section class="profile-header-section">
+  <div class="profile-header-container">
+    <div class="profile-welcome">
+      <div class="welcome-content">
+        <h1 class="profile-title">Ciao, {{ user.username }}!</h1>
+        <p class="profile-subtitle">Benvenuto nella tua area personale</p>
+      </div>
+      <div class="profile-avatar">
+        <div class="avatar-circle">
+          <span class="avatar-initial">{{ user.username|first|upper }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Profile Stats -->
+<section class="profile-stats-section">
+  <div class="profile-stats-container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.ordini_totali }}</span>
+          <span class="stat-label">Ordini Totali</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-info">
+          <span class="stat-number">€{{ stats.importo_totale|floatformat:2 }}</span>
+          <span class="stat-label">Speso Totale</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.prodotti_preferiti }}</span>
+          <span class="stat-label">Prodotti Preferiti</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📝</div>
+        <div class="stat-info">
+          <span class="stat-number">{{ stats.liste_attive }}</span>
+          <span class="stat-label">Liste Attive</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Profile Content -->
+<section class="profile-content-section">
+  <div class="profile-content-container">
+    <div class="profile-tabs">
+      <button class="tab-btn active" data-tab="info">Informazioni Personali</button>
+      <button class="tab-btn" data-tab="orders">Storico Ordini</button>
+      <button class="tab-btn" data-tab="lists">Le Tue Liste</button>
+      <button class="tab-btn" data-tab="settings">Impostazioni</button>
+    </div>
+
+    <div class="tab-content">
+      <!-- Tab Informazioni Personali -->
+      <div class="tab-panel active" id="info">
+        <div class="info-card">
+          <h3 class="card-title">
+            <span class="title-icon">👤</span>
+            Informazioni Account
+          </h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Username:</span>
+              <span class="info-value">{{ user.username }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email:</span>
+              <span class="info-value">{{ user.email|default:"Non specificata" }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Membro dal:</span>
+              <span class="info-value">{{ user.date_joined|date:"d/m/Y" }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ultimo accesso:</span>
+              <span class="info-value">{{ user.last_login|date:"d/m/Y H:i"|default:"Mai" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Storico Ordini -->
+      <div class="tab-panel" id="orders">
+        <div class="orders-card">
+          <h3 class="card-title">
+            <span class="title-icon">📦</span>
+            Storico Ordini
+          </h3>
+          <div class="orders-placeholder">
+            <div class="placeholder-content">
+              <div class="placeholder-icon">🛒</div>
+              <h4>Nessun Ordine Ancora</h4>
+              <p>Quando effettuerai il tuo primo ordine, apparirà qui il tuo storico completo con tutti i dettagli.</p>
+              <a href="{% url 'prodotti:list' %}" class="placeholder-btn">
+                Inizia a Fare Shopping
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Liste della Spesa -->
+      <div class="tab-panel" id="lists">
+        <div class="lists-card">
+          <div class="lists-header">
+            <h3 class="card-title">
+              <span class="title-icon">📝</span>
+              Le Tue Liste della Spesa
+            </h3>
+            <a href="{% url 'utenti:crea_lista' %}" class="btn-create-list-small">
+              <span class="btn-icon">➕</span>
+              Nuova Lista
+            </a>
+          </div>
+          
+          {% if liste_spesa %}
+          <!-- DEBUG: {{ liste_spesa|length }} liste trovate -->
+          <div class="lists-container">
+            {% for lista in liste_spesa %}
+            <div class="list-item {% if lista.completata %}completed{% endif %}" data-lista-id="{{ lista.id }}">
+              <div class="list-main-info">
+                <div class="list-details">
+                  <h4 class="list-name">{{ lista.nome }}</h4>
+                  <div class="list-meta">
+                    <span class="meta-item">
+                      <span class="meta-icon">📦</span>
+                      {{ lista.numero_prodotti }} prodotti
+                    </span>
+                    <span class="meta-item">
+                      <span class="meta-icon">💰</span>
+                      €{{ lista.prezzo_stimato|floatformat:2 }}
+                    </span>
+                    <span class="meta-item">
+                      <span class="meta-icon">📅</span>
+                      {{ lista.data_modifica|date:"d/m" }}
+                    </span>
+                  </div>
+                  {% if lista.descrizione %}
+                  <p class="list-description">{{ lista.descrizione|truncatechars:60 }}</p>
+                  {% endif %}
+                </div>
+                
+                <div class="list-status">
+                  {% if lista.completata %}
+                    <span class="status-badge completed">✅ Completata</span>
+                  {% else %}
+                    <span class="status-badge active">📝 Attiva</span>
+                  {% endif %}
+                </div>
+              </div>
+              
+              <div class="list-actions">
+                <button class="action-btn view-btn" onclick="visualizzaLista({{ lista.id }})" title="Visualizza">
+                  <span class="btn-icon">👁️</span>
+                </button>
+                {% if not lista.completata %}
+                <a href="{% url 'utenti:ordina_lista' lista.id %}" class="action-btn order-btn" title="Ordina">
+                  <span class="btn-icon">🛒</span>
+                </a>
+                {% endif %}
+                <button class="action-btn delete-btn" onclick="eliminaLista({{ lista.id }}, '{{ lista.nome|escapejs }}')" title="Elimina">
+                  <span class="btn-icon">🗑️</span>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <!-- DEBUG: Nessuna lista trovata -->
+          <div class="lists-placeholder">
+            <div class="placeholder-content">
+              <div class="placeholder-icon">📋</div>
+              <h4>Nessuna Lista Creata</h4>
+              <p>Crea liste della spesa personalizzate per organizzare i tuoi acquisti!</p>
+              <a href="{% url 'utenti:crea_lista' %}" class="placeholder-btn">
+                Crea la Tua Prima Lista
+              </a>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Tab Impostazioni -->
+      <div class="tab-panel" id="settings">
+        <div class="settings-card">
+          <h3 class="card-title">
+            <span class="title-icon">⚙️</span>
+            Impostazioni Account
+          </h3>
+          <div class="settings-options">
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Notifiche Email</h4>
+                <p>Ricevi aggiornamenti su offerte e nuovi prodotti</p>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked disabled>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Privacy Dati</h4>
+                <p>Gestisci la privacy dei tuoi dati personali</p>
+              </div>
+              <div class="setting-control">
+                <button class="setting-btn" disabled>Gestisci Privacy</button>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <h4>Elimina Account</h4>
+                <p>Rimuovi permanentemente il tuo account</p>
+              </div>
+              <div class="setting-control">
+                <button class="setting-btn danger" disabled>Elimina Account</button>
+              </div>
+            </div>
+          </div>
+          <div class="settings-note">
+            <p>⚠️ Le impostazioni avanzate saranno disponibili prossimamente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Popup per visualizzazione lista -->
+<div id="listaPopup" class="popup-overlay" style="display: none;">
+  <div class="popup-content">
+    <div class="popup-header">
+      <h3 id="popupListaNome" class="popup-title"></h3>
+      <button class="popup-close" onclick="chiudiPopup()">&times;</button>
+    </div>
+    
+    <div class="popup-body">
+      <div id="popupListaInfo" class="lista-info"></div>
+      <div id="popupListaElementi" class="lista-elementi"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/profile.js' %}"></script>
+<script src="{% static 'js/liste-popup.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Le Mie Liste della Spesa - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="lists-header-section">
+  <div class="lists-header-container">
+    <h1 class="lists-title">Le Mie Liste della Spesa</h1>
+    <p class="lists-subtitle">Organizza i tuoi acquisti in modo intelligente</p>
+    <a href="{% url 'utenti:crea_lista' %}" class="btn-create-list">
+      <span class="btn-icon">➕</span>
+      Crea Nuova Lista
+    </a>
+  </div>
+</section>
+
+<section class="lists-content-section">
+  <div class="lists-container">
+    {% if liste_spesa %}
+      <div class="lists-grid">
+        {% for lista in liste_spesa %}
+        <div class="list-card {% if lista.completata %}completed{% endif %}">
+          <div class="list-header">
+            <h3 class="list-name">{{ lista.nome }}</h3>
+            <div class="list-status">
+              {% if lista.completata %}
+                <span class="status-badge completed">✅ Completata</span>
+              {% else %}
+                <span class="status-badge active">📝 Attiva</span>
+              {% endif %}
+            </div>
+          </div>
+          
+          {% if lista.descrizione %}
+          <p class="list-description">{{ lista.descrizione|truncatechars:100 }}</p>
+          {% endif %}
+          
+          <div class="list-stats">
+            <div class="stat-item">
+              <span class="stat-icon">📦</span>
+              <span class="stat-text">{{ lista.numero_prodotti }} prodotti</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">💰</span>
+              <span class="stat-text">€{{ lista.prezzo_stimato|floatformat:2 }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">📅</span>
+              <span class="stat-text">{{ lista.data_modifica|date:"d/m/Y" }}</span>
+            </div>
+          </div>
+          
+          <div class="list-actions">
+            <a href="{% url 'utenti:dettaglio_lista' lista.id %}" class="btn-action primary">
+              <span class="btn-icon">👁️</span>
+              Visualizza
+            </a>
+            {% if not lista.completata %}
+            <a href="{% url 'utenti:ordina_lista' lista.id %}" class="btn-action success">
+              <span class="btn-icon">🛒</span>
+              Ordina
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <h3>Nessuna Lista Creata</h3>
+        <p>Inizia a organizzare i tuoi acquisti creando la tua prima lista della spesa!</p>
+        <a href="{% url 'utenti:crea_lista' %}" class="btn-create-first">
+          Crea la Tua Prima Lista
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/liste-spesa.css' %}">
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crea Lista della Spesa - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="create-list-section">
+  <div class="create-list-container">
+    <div class="create-list-header">
+      <h1 class="create-title">Crea Nuova Lista della Spesa</h1>
+      <p class="create-subtitle">Organizza i tuoi prodotti preferiti</p>
+    </div>
+    
+    <form method="post" class="create-list-form" id="createListForm">
+      {% csrf_token %}
+      
+      <div class="form-section">
+        <h3 class="section-title">Informazioni Lista</h3>
+        
+        <div class="form-group">
+          <label for="nome_lista" class="form-label">
+            <span class="label-icon">📝</span>
+            Nome Lista
+          </label>
+          <input type="text" id="nome_lista" name="nome_lista" required 
+                 placeholder="es. Spesa settimanale, Cena romantica..." 
+                 class="form-input">
+        </div>
+        
+        <div class="form-group">
+          <label for="descrizione" class="form-label">
+            <span class="label-icon">📄</span>
+            Descrizione (opzionale)
+          </label>
+          <textarea id="descrizione" name="descrizione" rows="3" 
+                    placeholder="Aggiungi una descrizione per la tua lista..."
+                    class="form-textarea"></textarea>
+        </div>
+      </div>
+      
+      <div class="form-section">
+        <h3 class="section-title">Aggiungi Prodotti</h3>
+        
+        <div class="product-search">
+          <input type="text" id="searchProducts" placeholder="Cerca prodotti..." class="search-input">
+          <div id="searchResults" class="search-results"></div>
+        </div>
+        
+        <div id="selectedProducts" class="selected-products">
+          <div class="no-products">
+            <span class="no-products-icon">🛒</span>
+            <p>Nessun prodotto selezionato. Usa la ricerca per aggiungere prodotti.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <a href="{% url 'utenti:profile' %}" class="btn-cancel">Annulla</a>
+        <button type="submit" class="btn-submit">
+          <span class="btn-icon">✨</span>
+          Crea Lista
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/liste-spesa.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/crea-lista.js' %}"></script>
+{% endblock %}

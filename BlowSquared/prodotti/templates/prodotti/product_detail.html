@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ prodotto.nome }} - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb Navigation -->
+<section class="breadcrumb-section">
+  <div class="breadcrumb-container">
+    <nav class="breadcrumb">
+      <a href="{% url 'home' %}" class="breadcrumb-link">Home</a>
+      <span class="breadcrumb-separator">›</span>
+      <a href="{% url 'prodotti:list' %}" class="breadcrumb-link">Prodotti</a>
+      <span class="breadcrumb-separator">›</span>
+      <span class="breadcrumb-current">{{ prodotto.nome|truncatechars:30 }}</span>
+    </nav>
+  </div>
+</section>
+
+<!-- Product Detail Section -->
+<section class="product-detail-section">
+  <div class="product-detail-container">
+    <div class="product-detail-grid">
+      
+      <!-- Product Image -->
+      <div class="product-image-section">
+        <div class="product-main-image">
+          {% if prodotto.foto %}
+            <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="main-product-image">
+          {% else %}
+            <div class="product-image-placeholder">
+              <div class="placeholder-icon">📦</div>
+              <span>Immagine non disponibile</span>
+            </div>
+          {% endif %}
+          
+          {% if prodotto.sconto > 0 %}
+            <div class="product-detail-discount">-{{ prodotto.sconto|floatformat:0 }}%</div>
+          {% endif %}
+          
+          {% if prodotto.stock <= 5 and prodotto.stock > 0 %}
+            <div class="product-detail-low-stock">Solo {{ prodotto.stock }} disponibili</div>
+          {% elif prodotto.stock == 0 %}
+            <div class="product-detail-out-stock">Esaurito</div>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Product Information -->
+      <div class="product-info-section">
+        <div class="product-category-badge">{{ prodotto.get_categoria_display }}</div>
+        
+        <h1 class="product-detail-title">{{ prodotto.nome }}</h1>
+        <p class="product-detail-brand">{{ prodotto.marca }}</p>
+        
+        <div class="product-detail-price">
+          {% if prodotto.sconto > 0 %}
+            <span class="original-price-large">€{{ prodotto.prezzo }}</span>
+            <span class="discounted-price-large">€{{ prodotto.prezzo_scontato|floatformat:2 }}</span>
+            <span class="savings-amount">Risparmi €{{ prodotto.risparmio|floatformat:2 }}</span>
+          {% else %}
+            <span class="current-price-large">€{{ prodotto.prezzo }}</span>
+          {% endif %}
+        </div>
+        
+        <div class="product-detail-meta">
+          <div class="meta-item">
+            <span class="meta-label">Peso:</span>
+            <span class="meta-value">{{ prodotto.peso }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Scadenza:</span>
+            <span class="meta-value">{{ prodotto.data_scadenza|date:"d/m/Y" }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Disponibilità:</span>
+            <span class="meta-value {% if prodotto.stock > 10 %}in-stock{% elif prodotto.stock > 0 %}low-stock{% else %}out-stock{% endif %}">
+              {% if prodotto.stock > 10 %}
+                Disponibile
+              {% elif prodotto.stock > 0 %}
+                {{ prodotto.stock }} disponibili
+              {% else %}
+                Esaurito
+              {% endif %}
+            </span>
+          </div>
+          {% if prodotto.numero_recensioni > 0 %}
+          <div class="meta-item">
+            <span class="meta-label">Recensioni:</span>
+            <span class="meta-value">{{ prodotto.numero_recensioni }} recensioni</span>
+          </div>
+          {% endif %}
+        </div>
+        
+        <div class="product-description">
+          <h3>Descrizione</h3>
+          <p>{{ prodotto.descrizione }}</p>
+        </div>
+        
+        {% if prodotto.ingredienti %}
+        <div class="product-ingredients">
+          <h3>Ingredienti</h3>
+          <p>{{ prodotto.ingredienti }}</p>
+        </div>
+        {% endif %}
+        
+        {% if prodotto.valori_nutrizionali %}
+        <div class="product-nutrition">
+          <h3>Valori Nutrizionali</h3>
+          <div class="nutrition-grid">
+            {% for key, value in prodotto.valori_nutrizionali.items %}
+              <div class="nutrition-item">
+                <span class="nutrition-label">{{ key|capfirst }}:</span>
+                <span class="nutrition-value">{{ value }}{% if key == 'energia_kcal' %} kcal{% elif key != 'alcol' %} g{% else %} %{% endif %}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        
+        <div class="product-actions-detail">
+          <button class="btn-add-cart-large" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
+            {% if prodotto.stock == 0 %}
+              Non disponibile
+            {% else %}
+              Aggiungi al carrello
+            {% endif %}
+          </button>
+          <a href="{% url 'prodotti:list' %}" class="btn-back-to-products">Torna ai prodotti</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Recommended Products Section (Placeholder) -->
+<section class="recommended-section">
+  <div class="recommended-container">
+    <div class="recommended-header">
+      <h2 class="recommended-title">Prodotti Raccomandati</h2>
+      <p class="recommended-subtitle">Scopri altri prodotti che potrebbero interessarti</p>
+    </div>
+    
+    <div class="recommended-placeholder">
+      <div class="placeholder-content">
+        <div class="placeholder-icon-large">🍽️</div>
+        <h3>Sistema di Raccomandazioni in Arrivo</h3>
+        <p>Presto qui troverai suggerimenti personalizzati per completare le tue ricette e i tuoi acquisti.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product-detail.css' %}">
+{% endblock %}

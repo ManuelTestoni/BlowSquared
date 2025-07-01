@@ -93,13 +93,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return `
                 <div class="product-card">
                     <div class="product-image-container">
-                        ${prodotto.foto ? 
-                            `<img src="${prodotto.foto}" alt="${prodotto.nome}" class="product-image">` :
-                            `<div class="product-placeholder">
-                                <div class="placeholder-icon">📦</div>
-                                <span>${prodotto.nome.substring(0, 15)}...</span>
-                             </div>`
-                        }
+                        <a href="/prodotti/${prodotto.id}/" class="product-image-link">
+                            ${prodotto.foto ? 
+                                `<img src="${prodotto.foto}" alt="${prodotto.nome}" class="product-image">` :
+                                `<div class="product-placeholder">
+                                    <div class="placeholder-icon">📦</div>
+                                    <span>${prodotto.nome.substring(0, 15)}...</span>
+                                 </div>`
+                            }
+                        </a>
                         
                         ${hasDiscount ? `<div class="product-discount">-${Math.round(prodotto.sconto)}%</div>` : ''}
                         

@@ -86,14 +86,16 @@
       {% for prodotto in prodotti %}
       <div class="product-card">
         <div class="product-image-container">
-          {% if prodotto.foto %}
-            <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="product-image">
-          {% else %}
-            <div class="product-placeholder">
-              <div class="placeholder-icon">📦</div>
-              <span>{{ prodotto.nome|truncatechars:15 }}</span>
-            </div>
-          {% endif %}
+          <a href="{% url 'prodotti:detail' prodotto.id %}" class="product-image-link">
+            {% if prodotto.foto %}
+              <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="product-image">
+            {% else %}
+              <div class="product-placeholder">
+                <div class="placeholder-icon">📦</div>
+                <span>{{ prodotto.nome|truncatechars:15 }}</span>
+              </div>
+            {% endif %}
+          </a>
           
           {% if prodotto.sconto > 0 %}
             <div class="product-discount">-{{ prodotto.sconto|floatformat:0 }}%</div>
@@ -140,6 +142,9 @@
                 Aggiungi al carrello
               {% endif %}
             </button>
+            <a href="{% url 'prodotti:detail' prodotto.id %}" class="btn-info">
+              Info
+            </a>
           </div>
         </div>
       </div>

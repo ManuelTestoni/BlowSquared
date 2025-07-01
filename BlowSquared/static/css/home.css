@@ -418,3 +418,15 @@
     padding: 1rem;
   }
 }
+
+.excellence-image-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.excellence-image-link:hover .excellence-image {
+  transform: scale(1.05);
+}
