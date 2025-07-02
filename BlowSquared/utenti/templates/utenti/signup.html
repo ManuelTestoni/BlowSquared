@@ -17,7 +17,7 @@
         <p class="auth-subtitle">Crea il tuo account per iniziare a risparmiare</p>
       </div>
       
-      <form method="post" class="auth-form">
+      <form method="post" class="auth-form" id="signupForm">
         {% csrf_token %}
         
         <div class="form-group">
@@ -48,6 +48,47 @@
               {% endfor %}
             </div>
           {% endif %}
+        </div>
+        
+        <!-- Sezione Posizione Semplificata -->
+        <div class="location-section">
+          <h4 class="location-title">
+            <span class="label-icon">📍</span>
+            La Tua Posizione
+          </h4>
+          <p class="location-help">Inserisci la tua città e provincia per ricevere suggerimenti sui negozi vicini</p>
+          
+          <div class="location-fields">
+            <div class="form-group">
+              <label for="{{ form.citta.id_for_label }}" class="form-label">
+                <span class="label-icon">🏙️</span>
+                Città
+              </label>
+              {{ form.citta }}
+              {% if form.citta.errors %}
+                <div class="form-errors">
+                  {% for error in form.citta.errors %}
+                    <span class="error-message">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="form-group">
+              <label for="{{ form.provincia.id_for_label }}" class="form-label">
+                <span class="label-icon">🗺️</span>
+                Provincia
+              </label>
+              {{ form.provincia }}
+              {% if form.provincia.errors %}
+                <div class="form-errors">
+                  {% for error in form.provincia.errors %}
+                    <span class="error-message">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
         </div>
         
         <div class="form-group">
@@ -106,3 +147,5 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
 {% endblock %}
+  
+

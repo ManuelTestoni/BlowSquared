@@ -1,6 +1,85 @@
 from django.db import models
 from django.contrib.auth.models import User
 from prodotti.models import Prodotto
+from decimal import Decimal
+import math
+
+# Estendo il profilo utente per includere posizione
+class ProfiloUtente(models.Model):
+    """Profilo esteso per l'utente con informazioni di posizione"""
+    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profilo'
+    )
+    
+    # Posizione utente (solo manuale, no coordinate)
+    citta = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text="Città dell'utente"
+    )
+    provincia = models.CharField(
+        max_length=2,
+        blank=True,
+        null=True,
+        help_text="Provincia dell'utente (sigla)"
+    )
+    
+    # Preferenze
+    negozio_preferito = models.ForeignKey(
+        'negozi.Negozio',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='utenti_preferiti',
+        help_text="Negozio preferito dell'utente"
+    )
+    raggio_ricerca_km = models.PositiveIntegerField(
+        default=50,
+        help_text="Raggio di ricerca in km per negozi vicini"
+    )
+    
+    # Privacy
+    condividi_posizione = models.BooleanField(
+        default=True,
+        help_text="Consenso a condividere la posizione per suggerimenti"
+    )
+    
+    # Timestamp
+    data_creazione = models.DateTimeField(auto_now_add=True)
+    data_modifica = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Profilo Utente"
+        verbose_name_plural = "Profili Utenti"
+    
+    def __str__(self):
+        return f"Profilo di {self.user.username}"
+    
+    def trova_negozi_in_provincia(self):
+        """Trova negozi nella stessa provincia dell'utente"""
+        if not self.provincia:
+            return None
+        
+        from negozi.models import Negozio
+        return Negozio.objects.filter(
+            attivo=True,
+            provincia=self.provincia
+        ).order_by('citta', 'nome')
+    
+    def trova_negozi_in_citta(self):
+        """Trova negozi nella stessa città dell'utente"""
+        if not self.citta:
+            return None
+        
+        from negozi.models import Negozio
+        return Negozio.objects.filter(
+            attivo=True,
+            citta__icontains=self.citta
+        ).order_by('nome')
 
 class ListaSpesa(models.Model):
     """Modello per le liste della spesa degli utenti"""
@@ -170,6 +249,34 @@ class ListaCondivisa(models.Model):
         on_delete=models.CASCADE, 
         related_name='condivisioni'
     )
+    utente_condiviso = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE,
+        help_text="Utente con cui è condivisa la lista"
+    )
+    permessi = models.CharField(
+        max_length=20,
+        choices=[
+            ('lettura', 'Solo Lettura'),
+            ('modifica', 'Lettura e Modifica'),
+            ('completo', 'Controllo Completo')
+        ],
+        default='lettura',
+        help_text="Livello di permessi per l'utente"
+    )
+    data_condivisione = models.DateTimeField(
+        auto_now_add=True
+    )
+    
+    class Meta:
+        verbose_name = "Lista Condivisa"
+        verbose_name_plural = "Liste Condivise"
+        unique_together = ['lista', 'utente_condiviso']
+        
+    def __str__(self):
+        return f"{self.lista.nome} condivisa con {self.utente_condiviso.username}"
+        related_name='condivisioni'
+
     utente_condiviso = models.ForeignKey(
         User, 
         on_delete=models.CASCADE,

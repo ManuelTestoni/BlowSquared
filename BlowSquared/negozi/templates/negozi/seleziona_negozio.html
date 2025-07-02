@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Seleziona il Tuo Negozio - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="stores-header-section">
+  <div class="stores-header-container">
+    <h1 class="stores-title">Tutti i Negozi BlowSquared</h1>
+    <p class="stores-subtitle">Scegli il punto vendita che preferisci tra tutti i nostri {{ total_negozi }} negozi</p>
+    {% if provincia_utente %}
+    <div class="user-location">
+      <span class="location-icon">📍</span>
+      <span class="location-text">La tua zona: {{ citta_utente|default:'' }} ({{ provincia_utente }})</span>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Stores Content -->
+<section class="stores-content-section">
+  <div class="stores-container">
+    
+    <!-- Negozi Consigliati -->
+    {% if negozi_consigliati %}
+    <div class="stores-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="section-icon">⭐</span>
+          Consigliati per Te
+        </h2>
+        <p class="section-subtitle">Negozi nella tua zona - {{ negozi_consigliati|length }} disponibili</p>
+      </div>
+      
+      <div class="stores-grid">
+        {% for negozio in negozi_consigliati %}
+        <div class="store-card recommended {% if negozio.is_same_city %}same-city{% endif %}" data-store-id="{{ negozio.id }}">
+          <div class="store-header">
+            <div class="store-info">
+              <h3 class="store-name">{{ negozio.nome }}</h3>
+              <p class="store-code">Codice: {{ negozio.codice_negozio }}</p>
+              {% if negozio.is_same_city %}
+              <span class="local-badge priority">🏠 Nella tua città</span>
+              {% else %}
+              <span class="local-badge">📍 Nella tua provincia</span>
+              {% endif %}
+            </div>
+            <div class="store-status">
+              <span class="status-indicator active">🟢 Aperto</span>
+              <span class="recommended-badge">⭐ Consigliato</span>
+            </div>
+          </div>
+          
+          <div class="store-details">
+            <div class="detail-item">
+              <span class="detail-icon">📍</span>
+              <span class="detail-text">{{ negozio.indirizzo_completo }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">📞</span>
+              <span class="detail-text">{{ negozio.telefono|default:"Non disponibile" }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">🏢</span>
+              <span class="detail-text">{{ negozio.superficie_mq }} m² - {{ negozio.numero_casse }} casse</span>
+            </div>
+          </div>
+          
+          <div class="store-services">
+            {% if negozio.servizio_farmacia %}<span class="service-tag">💊 Farmacia</span>{% endif %}
+            {% if negozio.servizio_panetteria %}<span class="service-tag">🍞 Panetteria</span>{% endif %}
+            {% if negozio.servizio_macelleria %}<span class="service-tag">🥩 Macelleria</span>{% endif %}
+            {% if negozio.servizio_pescheria %}<span class="service-tag">🐟 Pescheria</span>{% endif %}
+            {% if negozio.servizio_consegna_domicilio %}<span class="service-tag">🚚 Consegna</span>{% endif %}
+            {% if negozio.ritiro_click_collect %}<span class="service-tag">📦 Click&Collect</span>{% endif %}
+          </div>
+          
+          <div class="store-actions">
+            <a href="{% url 'negozi:dettaglio_completo' negozio.id %}" class="btn-details">
+              <span class="btn-icon">👁️</span>
+              Dettagli
+            </a>
+            <a href="{% url 'negozi:seleziona_preferito' negozio.id %}" class="btn-select {% if negozio.is_recommended %}recommended{% endif %}">
+              <span class="btn-icon">{% if negozio.is_recommended %}⭐{% else %}✅{% endif %}</span>
+              Seleziona
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Tutti gli Altri Negozi -->
+    {% if altri_negozi %}
+    <div class="stores-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span class="section-icon">🏪</span>
+          {% if negozi_consigliati %}Altri Negozi{% else %}Tutti i Negozi{% endif %}
+        </h2>
+        <p class="section-subtitle">
+          {% if negozi_consigliati %}
+            Esplora anche gli altri {{ altri_negozi|length }} punti vendita
+          {% else %}
+            Tutti i nostri {{ altri_negozi|length }} punti vendita disponibili
+          {% endif %}
+        </p>
+      </div>
+      
+      <div class="stores-grid">
+        {% for negozio in altri_negozi %}
+        <div class="store-card" data-store-id="{{ negozio.id }}">
+          <div class="store-header">
+            <div class="store-info">
+              <h3 class="store-name">{{ negozio.nome }}</h3>
+              <p class="store-code">Codice: {{ negozio.codice_negozio }}</p>
+              <span class="location-badge">{{ negozio.citta }} ({{ negozio.provincia }})</span>
+            </div>
+            <div class="store-status">
+              <span class="status-indicator active">🟢 Aperto</span>
+            </div>
+          </div>
+          
+          <div class="store-details">
+            <div class="detail-item">
+              <span class="detail-icon">📍</span>
+              <span class="detail-text">{{ negozio.indirizzo_completo }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">📞</span>
+              <span class="detail-text">{{ negozio.telefono|default:"Non disponibile" }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-icon">🏢</span>
+              <span class="detail-text">{{ negozio.superficie_mq }} m² - {{ negozio.numero_casse }} casse</span>
+            </div>
+          </div>
+          
+          <div class="store-services">
+            {% if negozio.servizio_farmacia %}<span class="service-tag">💊 Farmacia</span>{% endif %}
+            {% if negozio.servizio_panetteria %}<span class="service-tag">🍞 Panetteria</span>{% endif %}
+            {% if negozio.servizio_macelleria %}<span class="service-tag">🥩 Macelleria</span>{% endif %}
+            {% if negozio.servizio_pescheria %}<span class="service-tag">🐟 Pescheria</span>{% endif %}
+            {% if negozio.servizio_consegna_domicilio %}<span class="service-tag">🚚 Consegna</span>{% endif %}
+            {% if negozio.ritiro_click_collect %}<span class="service-tag">📦 Click&Collect</span>{% endif %}
+          </div>
+          
+          <div class="store-actions">
+            <a href="{% url 'negozi:dettaglio_completo' negozio.id %}" class="btn-details">
+              <span class="btn-icon">👁️</span>
+              Dettagli
+            </a>
+            <a href="{% url 'negozi:seleziona_preferito' negozio.id %}" class="btn-select">
+              <span class="btn-icon">✅</span>
+              Seleziona
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    
+    <!-- Empty State -->
+    {% if not negozi_consigliati and not altri_negozi %}
+    <div class="empty-stores">
+      <div class="empty-icon">🏪</div>
+      <h3>Nessun Negozio Disponibile</h3>
+      <p>Al momento non ci sono negozi disponibili. Riprova più tardi.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/negozi.css' %}">
+{% endblock %}
+

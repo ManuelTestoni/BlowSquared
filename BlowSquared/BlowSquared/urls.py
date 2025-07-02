@@ -25,8 +25,8 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('prodotti/', include('prodotti.urls')),
     path('utenti/', include('utenti.urls')),
+    path('negozi/', include('negozi.urls')),  # Nuova app aggiunta
     # path('carrello/', include('carrello.urls')),
-    # path('negozi/', include('negozi.urls')),
     # path('admin-dashboard/', include('admin_dashboard.urls')),
     # path('forum/', include('forum.urls')),
 ]

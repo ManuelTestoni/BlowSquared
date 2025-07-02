@@ -4,7 +4,8 @@
 .profile-header-section {
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
   color: white;
-  padding: 4rem 0 3rem;
+  padding: 6rem 0 3rem; /* Aumentato padding-top per evitare sovrapposizione navbar */
+  margin-top: 0; /* Assicura che non ci sia margine superiore */
 }
 
 .profile-header-container {
@@ -751,8 +752,221 @@ input:checked + .toggle-slider:before {
   margin-left: 0.5rem;
 }
 
+/* Location and Store Card */
+.location-store-card {
+  background: var(--light-color);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(62, 116, 71, 0.1);
+}
+
+.location-info {
+  margin-bottom: 2rem;
+}
+
+.store-info {
+  border-top: 2px solid rgba(62, 116, 71, 0.1);
+  padding-top: 2rem;
+}
+
+.current-store {
+  background: white;
+  border-radius: 15px;
+  padding: 2rem;
+  border: 2px solid rgba(62, 116, 71, 0.1);
+}
+
+.store-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.store-icon {
+  font-size: 1.4rem;
+}
+
+.store-details {
+  margin-bottom: 1.5rem;
+}
+
+.store-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.store-address {
+  color: var(--dark-color);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.store-meta {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.store-code,
+.store-phone {
+  font-size: 0.9rem;
+  color: var(--dark-color);
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.store-services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.service-badge {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.store-actions {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.btn-change-store {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 1.2rem 2.5rem;
+  border-radius: 15px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-change-store::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-change-store:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
+}
+
+.btn-change-store:hover::before {
+  left: 100%;
+}
+
+/* No Store State */
+.no-store {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 15px;
+  border: 2px dashed rgba(62, 116, 71, 0.2);
+}
+
+.no-store-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+
+.no-store h4 {
+  font-size: 1.3rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.no-store p {
+  color: var(--dark-color);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.btn-select-store {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  padding: 1.2rem 2.5rem;
+  border-radius: 15px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 25px rgba(62, 116, 71, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-select-store::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-select-store:hover {
+  background: linear-gradient(135deg, var(--accent-color), #2c3e50);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(62, 116, 71, 0.4);
+}
+
+.btn-select-store:hover::before {
+  left: 100%;
+}
+
+/* Navbar User Store */
+.user-store {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  margin: 0 0.5rem;
+  font-weight: 500;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .profile-header-section {
+    padding: 5rem 0 2rem; /* Padding ridotto ma ancora sufficiente su mobile */
+  }
+  
   .profile-welcome {
     flex-direction: column;
     text-align: center;
@@ -818,5 +1032,11 @@ input:checked + .toggle-slider:before {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-header-section {
+    padding: 4.5rem 0 1.5rem; /* Ulteriore riduzione su schermi molto piccoli */
   }
 }

@@ -6,9 +6,13 @@
     </div>
     <div class="nav-menu">
       <a href="{% url 'home' %}" class="nav-link">Home</a>
-      <a href="{% url 'prodotti:list' %}" class="nav-link">Prodotti</a>
+      {% if user.is_authenticated and user.profilo.negozio_preferito %}
+        <a href="{% url 'prodotti:list' %}" class="nav-link">Prodotti</a>
+      {% else %}
+        <a href="{% url 'negozi:seleziona_negozio' %}" class="nav-link" title="Seleziona prima un negozio">Prodotti</a>
+      {% endif %}
       <a href="#carrello" class="nav-link">Carrello</a>
-      <a href="#negozi" class="nav-link">Negozi</a>
+      <a href="{% url 'negozi:seleziona_negozio' %}" class="nav-link">Negozi</a>
       <a href="#forum" class="nav-link">Forum</a>
     </div>
     <div class="nav-auth">

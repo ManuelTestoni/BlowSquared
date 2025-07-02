@@ -94,6 +94,73 @@
             </div>
           </div>
         </div>
+        
+        <!-- Sezione Posizione e Negozio -->
+        <div class="location-store-card">
+          <h3 class="card-title">
+            <span class="title-icon">📍</span>
+            Posizione e Negozio Preferito
+          </h3>
+          
+          <div class="location-info">
+            <div class="info-item">
+              <span class="info-label">Città:</span>
+              <span class="info-value">{{ user.profilo.citta|default:"Non specificata" }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Provincia:</span>
+              <span class="info-value">{{ user.profilo.provincia|default:"Non specificata" }}</span>
+            </div>
+          </div>
+          
+          <div class="store-info">
+            {% if user.profilo.negozio_preferito %}
+            <div class="current-store">
+              <h4 class="store-title">
+                <span class="store-icon">🏪</span>
+                Negozio Selezionato
+              </h4>
+              <div class="store-details">
+                <div class="store-main">
+                  <h5 class="store-name">{{ user.profilo.negozio_preferito.nome }}</h5>
+                  <p class="store-address">{{ user.profilo.negozio_preferito.indirizzo_completo }}</p>
+                  <div class="store-meta">
+                    <span class="store-code">Codice: {{ user.profilo.negozio_preferito.codice_negozio }}</span>
+                    <span class="store-phone">📞 {{ user.profilo.negozio_preferito.telefono|default:"N/A" }}</span>
+                  </div>
+                </div>
+                <div class="store-services">
+                  {% if user.profilo.negozio_preferito.servizio_consegna_domicilio %}
+                  <span class="service-badge">🚚 Consegna</span>
+                  {% endif %}
+                  {% if user.profilo.negozio_preferito.ritiro_click_collect %}
+                  <span class="service-badge">📦 Ritiro</span>
+                  {% endif %}
+                  {% if user.profilo.negozio_preferito.servizio_farmacia %}
+                  <span class="service-badge">💊 Farmacia</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="store-actions">
+                <a href="{% url 'negozi:seleziona_negozio' %}" class="btn-change-store">
+                  <span class="btn-icon">🔄</span>
+                  Cambia Negozio
+                </a>
+              </div>
+            </div>
+            {% else %}
+            <div class="no-store">
+              <div class="no-store-icon">🏪</div>
+              <h4>Nessun Negozio Selezionato</h4>
+              <p>Seleziona il tuo negozio preferito per accedere al catalogo prodotti e ai servizi personalizzati.</p>
+              <a href="{% url 'negozi:seleziona_negozio' %}" class="btn-select-store">
+                <span class="btn-icon">🏪</span>
+                Seleziona Negozio
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
       </div>
 
       <!-- Tab Storico Ordini -->
@@ -175,9 +242,10 @@
                   <span class="btn-icon">🛒</span>
                 </a>
                 {% endif %}
-                <button class="action-btn delete-btn" onclick="eliminaLista({{ lista.id }}, '{{ lista.nome|escapejs }}')" title="Elimina">
+                <a href="{% url 'utenti:elimina_lista' lista.id %}" class="action-btn delete-btn" title="Elimina" 
+                   onclick="return confirm('Sei sicuro di voler eliminare la lista {{ lista.nome|escapejs }}?')">
                   <span class="btn-icon">🗑️</span>
-                </button>
+                </a>
               </div>
             </div>
             {% endfor %}
@@ -251,7 +319,7 @@
   <div class="popup-content">
     <div class="popup-header">
       <h3 id="popupListaNome" class="popup-title"></h3>
-      <button class="popup-close" onclick="chiudiPopup()">&times;</button>
+      <button class="popup-close" onclick="chiudiPopupLista()">&times;</button>
     </div>
     
     <div class="popup-body">
@@ -268,5 +336,95 @@
 
 {% block extra_js %}
 <script src="{% static 'js/profile.js' %}"></script>
-<script src="{% static 'js/liste-popup.js' %}"></script>
+<script>
+// Funzioni JavaScript per le liste
+function visualizzaLista(listaId) {
+    fetch(`/utenti/liste-spesa/${listaId}/visualizza/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Popola il popup con i dati della lista
+            document.getElementById('popupListaNome').textContent = data.lista.nome;
+            
+            // Info della lista
+            const infoHtml = `
+                <div class="info-grid">
+                    <div class="info-stat">
+                        <span class="stat-value">${data.lista.numero_prodotti}</span>
+                        <span class="stat-label">Prodotti</span>
+                    </div>
+                    <div class="info-stat">
+                        <span class="stat-value">${data.lista.quantita_totale}</span>
+                        <span class="stat-label">Quantità Totale</span>
+                    </div>
+                    <div class="info-stat">
+                        <span class="stat-value">€${data.lista.prezzo_stimato}</span>
+                        <span class="stat-label">Prezzo Stimato</span>
+                    </div>
+                </div>
+                ${data.lista.descrizione ? `<p><strong>Descrizione:</strong> ${data.lista.descrizione}</p>` : ''}
+            `;
+            document.getElementById('popupListaInfo').innerHTML = infoHtml;
+            
+            // Elementi della lista
+            let elementiHtml = '';
+            if (data.elementi.length > 0) {
+                data.elementi.forEach(elemento => {
+                    elementiHtml += `
+                        <div class="elemento-item">
+                            <div class="elemento-info">
+                                <h5>${elemento.nome}</h5>
+                                <div class="elemento-details">${elemento.marca} - ${elemento.categoria}</div>
+                            </div>
+                            <div class="elemento-meta">
+                                <div class="elemento-quantita">x${elemento.quantita}</div>
+                                <div class="elemento-prezzo">€${elemento.prezzo_totale}</div>
+                                <span class="elemento-priorita">${elemento.priorita_emoji}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                elementiHtml = '<p>Nessun prodotto nella lista</p>';
+            }
+            document.getElementById('popupListaElementi').innerHTML = elementiHtml;
+            
+            // Mostra il popup
+            document.getElementById('listaPopup').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        } else {
+            alert('Errore nel caricamento della lista');
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore di rete');
+    });
+}
+
+function chiudiPopupLista() {
+    document.getElementById('listaPopup').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Chiudi popup cliccando fuori
+document.addEventListener('click', function(e) {
+    const popup = document.getElementById('listaPopup');
+    if (e.target === popup) {
+        chiudiPopupLista();
+    }
+});
+
+// Chiudi popup con ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        chiudiPopupLista();
+    }
+});
+</script>
 {% endblock %}

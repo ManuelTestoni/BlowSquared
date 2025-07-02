@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ negozio.nome }} - Dettagli Completi{% endblock %}
+
+{% block content %}
+<!-- Store Detail Hero -->
+<section class="store-detail-hero">
+  <div class="store-detail-container">
+    <div class="store-detail-layout">
+      <!-- Store Image Section (Left) -->
+      <div class="store-image-section">
+        <div class="store-main-image">
+          <img src="/media/negozi/{{ negozio.codice_negozio|lower }}_store.png" 
+               alt="{{ negozio.nome }}" 
+               class="store-detail-photo"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="store-photo-placeholder" style="display: none;">
+            <div class="placeholder-logo">🏪</div>
+            <div class="placeholder-brand">Blow²</div>
+            <div class="placeholder-location">{{ negozio.nome }}</div>
+          </div>
+        </div>
+        
+        <div class="store-badges">
+          <div class="store-code-badge">{{ negozio.codice_negozio }}</div>
+          <div class="store-status-badge">🟢 Attualmente Aperto</div>
+        </div>
+        
+        <div class="store-quick-stats">
+          <div class="quick-stat">
+            <span class="stat-number">{{ negozio.superficie_mq }}</span>
+            <span class="stat-label">m² superficie</span>
+          </div>
+          <div class="quick-stat">
+            <span class="stat-number">{{ prodotti_disponibili }}</span>
+            <span class="stat-label">prodotti disponibili</span>
+          </div>
+          <div class="quick-stat">
+            <span class="stat-number">{{ negozio.numero_casse }}</span>
+            <span class="stat-label">casse disponibili</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Store Info Section (Right) -->
+      <div class="store-info-section">
+        <div class="store-header">
+          <h1 class="store-title">{{ negozio.nome }}</h1>
+          <p class="store-subtitle">{{ negozio.indirizzo_completo }}</p>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="info-block">
+          <h3 class="block-title">
+            <span class="title-icon">📞</span>
+            Contatti
+          </h3>
+          <div class="contact-list">
+            {% if negozio.telefono %}
+            <div class="contact-item">
+              <span class="contact-icon">📞</span>
+              <span class="contact-label">Telefono:</span>
+              <a href="tel:{{ negozio.telefono }}" class="contact-value">{{ negozio.telefono }}</a>
+            </div>
+            {% endif %}
+            {% if negozio.email %}
+            <div class="contact-item">
+              <span class="contact-icon">📧</span>
+              <span class="contact-label">Email:</span>
+              <a href="mailto:{{ negozio.email }}" class="contact-value">{{ negozio.email }}</a>
+            </div>
+            {% endif %}
+            <div class="contact-item">
+              <span class="contact-icon">📍</span>
+              <span class="contact-label">Indirizzo:</span>
+              <span class="contact-value">{{ negozio.indirizzo_completo }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Opening Hours -->
+        <div class="info-block">
+          <h3 class="block-title">
+            <span class="title-icon">🕒</span>
+            Orari di Apertura
+          </h3>
+          <div class="hours-list">
+            {% for giorno, orario in orari_formattati.items %}
+            <div class="hours-item {% if giorno == oggi %}today{% endif %}">
+              <span class="day-name">{{ giorno }}</span>
+              <span class="day-hours">{{ orario }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <!-- Services -->
+        <div class="info-block">
+          <h3 class="block-title">
+            <span class="title-icon">🛎️</span>
+            Servizi Disponibili
+          </h3>
+          <div class="services-grid">
+            {% if negozio.servizio_farmacia %}
+            <div class="service-item available">
+              <span class="service-icon">💊</span>
+              <span class="service-name">Farmacia</span>
+            </div>
+            {% endif %}
+            {% if negozio.servizio_panetteria %}
+            <div class="service-item available">
+              <span class="service-icon">🍞</span>
+              <span class="service-name">Panetteria</span>
+            </div>
+            {% endif %}
+            {% if negozio.servizio_macelleria %}
+            <div class="service-item available">
+              <span class="service-icon">🥩</span>
+              <span class="service-name">Macelleria</span>
+            </div>
+            {% endif %}
+            {% if negozio.servizio_pescheria %}
+            <div class="service-item available">
+              <span class="service-icon">🐟</span>
+              <span class="service-name">Pescheria</span>
+            </div>
+            {% endif %}
+            {% if negozio.servizio_consegna_domicilio %}
+            <div class="service-item available">
+              <span class="service-icon">🚚</span>
+              <span class="service-name">Consegna a Domicilio</span>
+            </div>
+            {% endif %}
+            {% if negozio.ritiro_click_collect %}
+            <div class="service-item available">
+              <span class="service-icon">📦</span>
+              <span class="service-name">Click & Collect</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Additional Info -->
+        <div class="info-block">
+          <h3 class="block-title">
+            <span class="title-icon">ℹ️</span>
+            Informazioni Aggiuntive
+          </h3>
+          <div class="additional-info">
+            <div class="info-row">
+              <span class="info-label">Parcheggio:</span>
+              <span class="info-value">
+                {% if negozio.parcheggio_disponibile %}
+                  ✅ Disponibile ({{ negozio.posti_parcheggio }} posti)
+                {% else %}
+                  ❌ Non disponibile
+                {% endif %}
+              </span>
+            </div>
+            {% if negozio.direttore %}
+            <div class="info-row">
+              <span class="info-label">Direttore:</span>
+              <span class="info-value">{{ negozio.direttore }}</span>
+            </div>
+            {% endif %}
+            <div class="info-row">
+              <span class="info-label">Apertura negozio:</span>
+              <span class="info-value">{{ negozio.data_apertura|date:"d/m/Y" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="store-actions">
+      <a href="{% url 'negozi:seleziona_preferito' negozio.id %}" class="btn-primary catalog-btn">
+        <span class="btn-icon">🛒</span>
+        Vai al Catalogo
+      </a>
+      <a href="{% url 'negozi:seleziona_negozio' %}" class="btn-secondary back-btn">
+        <span class="btn-icon">↩️</span>
+        Torna alla Selezione
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/negozi.css' %}">
+<link rel="stylesheet" href="{% static 'css/store-detail.css' %}">
+{% endblock %}

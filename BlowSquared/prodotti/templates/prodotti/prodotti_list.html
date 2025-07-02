@@ -8,7 +8,13 @@
 <section class="products-hero">
   <div class="products-hero-content">
     <h1 class="products-title">I Nostri Prodotti</h1>
+    {% if user.is_authenticated and user.profilo.negozio_preferito %}
+    <p class="products-subtitle">
+      <strong>{{ user.profilo.negozio_preferito.citta }}</strong>: Scopri la nostra selezione di prodotti di qualità premium
+    </p>
+    {% else %}
     <p class="products-subtitle">Scopri la nostra selezione di prodotti di qualità premium</p>
+    {% endif %}
     <div class="products-stats">
       <span class="products-count">{{ total_prodotti }} prodotti disponibili</span>
     </div>
@@ -168,3 +174,4 @@
 {% block extra_js %}
 <script src="{% static 'js/prodotti-search.js' %}"></script>
 {% endblock %}
+      

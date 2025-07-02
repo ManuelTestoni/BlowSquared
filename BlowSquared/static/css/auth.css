@@ -314,24 +314,125 @@
   50% { transform: translateY(-10px) rotate(180deg); }
 }
 
-/* Responsive */
+/* Location Section Semplificata */
+.location-section {
+  background: linear-gradient(135deg, rgba(222, 174, 82, 0.1) 0%, rgba(248, 250, 249, 0.8) 100%);
+  padding: 2rem;
+  border-radius: 15px;
+  margin: 2rem 0;
+  border: 2px solid rgba(62, 116, 71, 0.2);
+}
+
+.location-title {
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.location-help {
+  color: var(--dark-color);
+  opacity: 0.8;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+}
+
+.location-fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Input fields più larghi e visibili */
+.location-input {
+  width: 100%;
+  padding: 1.2rem 1.5rem;
+  border: 2px solid rgba(62, 116, 71, 0.2);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  min-width: 300px; /* Larghezza minima per visibilità */
+}
+
+.provincia-input {
+  width: 100%;
+  padding: 1.2rem 1.5rem;
+  border: 2px solid rgba(62, 116, 71, 0.2);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  min-width: 120px; /* Larghezza minima per provincia */
+}
+
+.location-input:focus,
+.provincia-input:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  background: white;
+  box-shadow: 0 0 20px rgba(222, 174, 82, 0.2);
+  transform: translateY(-2px);
+}
+
+.location-input::placeholder,
+.provincia-input::placeholder {
+  color: rgba(62, 116, 71, 0.6);
+  font-style: italic;
+}
+
+/* Responsive location section */
 @media (max-width: 768px) {
-  .auth-container {
-    padding: 1rem;
+  .location-fields {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
-  .auth-card {
-    padding: 2rem 1.5rem;
+  .location-section {
+    padding: 1.5rem;
   }
   
-  .auth-title {
-    font-size: 2rem;
+  .location-input,
+  .provincia-input {
+    min-width: auto;
+    font-size: 1rem;
   }
+}
+
+@media (max-width: 480px) {
+  .location-input,
+  .provincia-input {
+    padding: 1rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
   
   .auth-subtitle {
     font-size: 1rem;
   }
-}
+  
+  .location-manual {
+    grid-template-columns: 1fr;
+  }
+  
+  .location-section {
+    padding: 1.5rem;
+  }
+
 
 @media (max-width: 480px) {
   .auth-card {

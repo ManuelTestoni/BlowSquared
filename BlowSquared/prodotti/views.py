@@ -1,14 +1,40 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Q
+from django.contrib import messages
 from .models import Prodotto
 from decimal import Decimal
 
 def list(request):
     """Vista per la lista di tutti i prodotti con filtri e ricerca"""
     
-    # Recupera tutti i prodotti
-    prodotti = Prodotto.objects.all()
+    # CONTROLLO OBBLIGATORIO: Solo utenti autenticati con negozio selezionato possono vedere i prodotti
+    if not request.user.is_authenticated:
+        messages.info(request, 'Devi essere registrato e aver selezionato un negozio per vedere i prodotti disponibili.')
+        return redirect('utenti:signup')
+    
+    try:
+        profilo = request.user.profilo
+        if not profilo.negozio_preferito:
+            messages.info(request, 'Seleziona prima il tuo negozio preferito per vedere i prodotti disponibili.')
+            return redirect('negozi:seleziona_negozio')
+        
+        # Filtra prodotti in base al negozio selezionato
+        negozio_preferito = profilo.negozio_preferito
+        
+        # Recupera solo i prodotti disponibili nel negozio selezionato
+        from negozi.models import DisponibilitaProdotto
+        prodotti_disponibili = DisponibilitaProdotto.objects.filter(
+            negozio=negozio_preferito,
+            quantita_disponibile__gt=0
+        ).values_list('prodotto_id', flat=True)
+        
+        prodotti = Prodotto.objects.filter(id__in=prodotti_disponibili)
+        
+    except Exception as e:
+        # Se non ha un profilo o ci sono errori, redirigi alla selezione negozio
+        messages.info(request, 'Completa il tuo profilo selezionando un negozio.')
+        return redirect('negozi:seleziona_negozio')
     
     # Filtri dalla query string
     search_query = request.GET.get('search', '')
@@ -105,8 +131,36 @@ def list(request):
 def detail(request, product_id):
     """Vista per il dettaglio di un singolo prodotto"""
     
+    # STESSO CONTROLLO: Solo utenti autenticati con negozio possono vedere i dettagli
+    if not request.user.is_authenticated:
+        messages.info(request, 'Devi essere registrato e aver selezionato un negozio per vedere i dettagli dei prodotti.')
+        return redirect('utenti:signup')
+    
+    try:
+        profilo = request.user.profilo
+        if not profilo.negozio_preferito:
+            messages.info(request, 'Seleziona prima il tuo negozio preferito.')
+            return redirect('negozi:seleziona_negozio')
+    except:
+        messages.info(request, 'Completa il tuo profilo selezionando un negozio.')
+        return redirect('negozi:seleziona_negozio')
+    
     # Recupera il prodotto specifico o restituisce 404
     prodotto = get_object_or_404(Prodotto, id=product_id)
+    
+    # Verifica che il prodotto sia disponibile nel negozio dell'utente
+    from negozi.models import DisponibilitaProdotto
+    try:
+        disponibilita = DisponibilitaProdotto.objects.get(
+            prodotto=prodotto,
+            negozio=profilo.negozio_preferito
+        )
+        if disponibilita.quantita_disponibile <= 0:
+            messages.warning(request, f'Il prodotto "{prodotto.nome}" non è attualmente disponibile nel tuo negozio.')
+            return redirect('prodotti:list')
+    except DisponibilitaProdotto.DoesNotExist:
+        messages.warning(request, f'Il prodotto "{prodotto.nome}" non è disponibile nel tuo negozio.')
+        return redirect('prodotti:list')
     
     # Calcola prezzo scontato e risparmio se presente
     if prodotto.sconto > 0:
@@ -122,6 +176,7 @@ def detail(request, product_id):
     context = {
         'prodotto': prodotto,
         'prodotti_raccomandati': prodotti_raccomandati,
+        'disponibilita': disponibilita,
     }
     
     return render(request, 'prodotti/product_detail.html', context)
