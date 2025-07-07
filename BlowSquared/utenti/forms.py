@@ -8,29 +8,30 @@ class CustomUserCreationForm(UserCreationForm):
         required=True,
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Il tuo indirizzo email'
+            'placeholder': 'Inserisci la tua email'
         })
     )
     
-    # Campi semplificati per la posizione (solo manuali)
     citta = forms.CharField(
         max_length=100,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'form-control location-input',
-            'placeholder': 'La tua città (es: Modena, Bologna, Rimini)'
+            'class': 'form-control',
+            'placeholder': 'Es. Bologna'
         }),
-        label='Città'
+        help_text="Inserisci la tua città"
     )
+    
     provincia = forms.CharField(
         max_length=2,
         required=True,
         widget=forms.TextInput(attrs={
-            'class': 'form-control provincia-input',
-            'placeholder': 'Sigla provincia (es: MO, BO, RN)',
-            'maxlength': '2'
+            'class': 'form-control',
+            'placeholder': 'Es. BO',
+            'maxlength': '2',
+            'style': 'text-transform: uppercase;'
         }),
-        label='Provincia'
+        help_text="Sigla provincia (2 lettere)"
     )
     
     class Meta:

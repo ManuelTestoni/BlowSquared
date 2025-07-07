@@ -145,10 +145,12 @@
               {% if prodotto.stock == 0 %}
                 Non disponibile
               {% else %}
+                <span class="btn-icon">🛒</span>
                 Aggiungi al carrello
               {% endif %}
             </button>
             <a href="{% url 'prodotti:detail' prodotto.id %}" class="btn-info">
+              <span class="btn-icon">👁️</span>
               Info
             </a>
           </div>
@@ -173,5 +175,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/prodotti-search.js' %}"></script>
+<script src="{% static 'js/prodotti-carrello.js' %}"></script>
 {% endblock %}
-      

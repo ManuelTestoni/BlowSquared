@@ -119,13 +119,32 @@
         {% endif %}
         
         <div class="product-actions-detail">
-          <button class="btn-add-cart-large" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
-            {% if prodotto.stock == 0 %}
-              Non disponibile
-            {% else %}
-              Aggiungi al carrello
-            {% endif %}
-          </button>
+          <div class="product-actions">
+            <div class="quantity-selector">
+              <label for="quantity" class="quantity-label">Quantità:</label>
+              <div class="quantity-controls">
+                <button type="button" class="quantity-btn quantity-minus" onclick="changeQuantity(-1)">-</button>
+                <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ disponibilita.quantita_disponibile }}" class="quantity-input">
+                <button type="button" class="quantity-btn quantity-plus" onclick="changeQuantity(1)">+</button>
+              </div>
+            </div>
+            
+            <button class="btn-add-cart-detail" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
+              {% if prodotto.stock == 0 %}
+                <span class="btn-icon">❌</span>
+                Non Disponibile
+              {% else %}
+                <span class="btn-icon">🛒</span>
+                Aggiungi al Carrello
+              {% endif %}
+            </button>
+            
+            <button class="btn-add-to-list">
+              <span class="btn-icon">📝</span>
+              Aggiungi alla Lista
+            </button>
+          </div>
+          
           <a href="{% url 'prodotti:list' %}" class="btn-back-to-products">Torna ai prodotti</a>
         </div>
       </div>
@@ -155,4 +174,9 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/product-detail.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/prodotto-detail.js' %}"></script>
+<script src="{% static 'js/prodotti-carrello.js' %}"></script>
 {% endblock %}

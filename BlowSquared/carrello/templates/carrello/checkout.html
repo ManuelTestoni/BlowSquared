@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Checkout Header -->
+<section class="checkout-header-section">
+  <div class="checkout-header-container">
+    <h1 class="checkout-title">Checkout</h1>
+    <p class="checkout-subtitle">Completa il tuo ordine in pochi semplici passaggi</p>
+    
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+      <div class="step completed">
+        <div class="step-circle">✓</div>
+        <span class="step-label">Carrello</span>
+      </div>
+      <div class="step active">
+        <div class="step-circle">2</div>
+        <span class="step-label">Checkout</span>
+      </div>
+      <div class="step">
+        <div class="step-circle">3</div>
+        <span class="step-label">Conferma</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Checkout Content -->
+<section class="checkout-content-section">
+  <div class="checkout-container">
+    <form id="checkoutForm" class="checkout-form" method="post">
+      {% csrf_token %}
+      
+      <div class="checkout-layout">
+        <!-- Left Column - Forms -->
+        <div class="checkout-forms">
+          
+          <!-- Personal Information -->
+          <div class="form-section">
+            <h2 class="section-title">
+              <span class="section-icon">👤</span>
+              Informazioni Personali
+            </h2>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="nome" class="form-label">Nome *</label>
+                <input type="text" id="nome" name="nome" class="form-input" required>
+                <span class="error-message" id="nome-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="cognome" class="form-label">Cognome *</label>
+                <input type="text" id="cognome" name="cognome" class="form-input" required>
+                <span class="error-message" id="cognome-error"></span>
+              </div>
+              
+              <div class="form-group full-width">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" id="email" name="email" class="form-input" value="{{ user.email }}" required>
+                <span class="error-message" id="email-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="telefono" class="form-label">Telefono *</label>
+                <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="+39 123 456 7890" required>
+                <span class="error-message" id="telefono-error"></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Shipping Address -->
+          <div class="form-section">
+            <h2 class="section-title">
+              <span class="section-icon">📍</span>
+              Indirizzo di Spedizione
+            </h2>
+            
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="indirizzo-spedizione" class="form-label">Via / Piazza *</label>
+                <input type="text" id="indirizzo-spedizione" name="indirizzo_spedizione" class="form-input" placeholder="Es. Via Roma, 123" required>
+                <span class="error-message" id="indirizzo-spedizione-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="citta-spedizione" class="form-label">Città *</label>
+                <input type="text" id="citta-spedizione" name="citta_spedizione" class="form-input" value="{{ user.profilo.citta }}" required>
+                <span class="error-message" id="citta-spedizione-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="cap-spedizione" class="form-label">CAP *</label>
+                <input type="text" id="cap-spedizione" name="cap_spedizione" class="form-input" placeholder="40100" pattern="[0-9]{5}" required>
+                <span class="error-message" id="cap-spedizione-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="provincia-spedizione" class="form-label">Provincia *</label>
+                <input type="text" id="provincia-spedizione" name="provincia_spedizione" class="form-input" value="{{ user.profilo.provincia }}" maxlength="2" style="text-transform: uppercase;" required>
+                <span class="error-message" id="provincia-spedizione-error"></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Billing Address Toggle -->
+          <div class="form-section">
+            <div class="address-toggle">
+              <label class="checkbox-container">
+                <input type="checkbox" id="same-address" name="same_address" checked>
+                <span class="checkmark"></span>
+                <span class="checkbox-label">L'indirizzo di fatturazione è uguale a quello di spedizione</span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Billing Address (Initially Hidden) -->
+          <div class="form-section" id="billing-section" style="display: none;">
+            <h2 class="section-title">
+              <span class="section-icon">📄</span>
+              Indirizzo di Fatturazione
+            </h2>
+            
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="indirizzo-fatturazione" class="form-label">Via / Piazza *</label>
+                <input type="text" id="indirizzo-fatturazione" name="indirizzo_fatturazione" class="form-input" placeholder="Es. Via Roma, 123">
+                <span class="error-message" id="indirizzo-fatturazione-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="citta-fatturazione" class="form-label">Città *</label>
+                <input type="text" id="citta-fatturazione" name="citta_fatturazione" class="form-input">
+                <span class="error-message" id="citta-fatturazione-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="cap-fatturazione" class="form-label">CAP *</label>
+                <input type="text" id="cap-fatturazione" name="cap_fatturazione" class="form-input" placeholder="40100" pattern="[0-9]{5}">
+                <span class="error-message" id="cap-fatturazione-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="provincia-fatturazione" class="form-label">Provincia *</label>
+                <input type="text" id="provincia-fatturazione" name="provincia_fatturazione" class="form-input" maxlength="2" style="text-transform: uppercase;">
+                <span class="error-message" id="provincia-fatturazione-error"></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Payment Information -->
+          <div class="form-section">
+            <h2 class="section-title">
+              <span class="section-icon">💳</span>
+              Informazioni di Pagamento
+            </h2>
+            
+            <div class="payment-methods">
+              <label class="payment-method active">
+                <input type="radio" name="payment_method" value="credit_card" checked>
+                <div class="payment-option">
+                  <span class="payment-icon">💳</span>
+                  <span class="payment-text">Carta di Credito</span>
+                </div>
+              </label>
+            </div>
+            
+            <div class="form-grid" id="credit-card-form">
+              <div class="form-group full-width">
+                <label for="numero-carta" class="form-label">Numero Carta *</label>
+                <input type="text" id="numero-carta" name="numero_carta" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                <span class="error-message" id="numero-carta-error"></span>
+              </div>
+              
+              <div class="form-group full-width">
+                <label for="intestatario-carta" class="form-label">Intestatario Carta *</label>
+                <input type="text" id="intestatario-carta" name="intestatario_carta" class="form-input" placeholder="MARIO ROSSI" style="text-transform: uppercase;" required>
+                <span class="error-message" id="intestatario-carta-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="scadenza-carta" class="form-label">Scadenza *</label>
+                <input type="text" id="scadenza-carta" name="scadenza_carta" class="form-input" placeholder="MM/YY" maxlength="5" required>
+                <span class="error-message" id="scadenza-carta-error"></span>
+              </div>
+              
+              <div class="form-group">
+                <label for="cvv-carta" class="form-label">CVV *</label>
+                <input type="text" id="cvv-carta" name="cvv_carta" class="form-input" placeholder="123" maxlength="4" required>
+                <span class="error-message" id="cvv-carta-error"></span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Order Notes -->
+          <div class="form-section">
+            <h2 class="section-title">
+              <span class="section-icon">📝</span>
+              Note per l'Ordine
+            </h2>
+            
+            <div class="form-group">
+              <label for="note-ordine" class="form-label">Note Aggiuntive (Facoltativo)</label>
+              <textarea id="note-ordine" name="note_ordine" class="form-textarea" rows="4" placeholder="Inserisci eventuali note per la consegna o richieste speciali..."></textarea>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right Column - Order Summary -->
+        <div class="order-summary-sticky">
+          <div class="order-summary-card">
+            <h2 class="summary-title">Riepilogo Ordine</h2>
+            
+            <!-- Order Items -->
+            <div class="summary-items">
+              {% for item in carrello_items %}
+              <div class="summary-item">
+                <div class="item-image">
+                  {% if item.foto %}
+                    <img src="{{ item.foto }}" alt="{{ item.nome }}">
+                  {% else %}
+                    <div class="item-placeholder">📦</div>
+                  {% endif %}
+                </div>
+                <div class="item-details">
+                  <h4 class="item-name">{{ item.nome|truncatechars:30 }}</h4>
+                  <p class="item-quantity">Quantità: {{ item.quantita }}</p>
+                </div>
+                <div class="item-price">€{{ item.prezzo_totale|floatformat:2 }}</div>
+              </div>
+              {% endfor %}
+            </div>
+            
+            <!-- Price Breakdown -->
+            <div class="price-breakdown">
+              <div class="price-row">
+                <span class="price-label">Subtotale:</span>
+                <span class="price-value">€{{ subtotale|floatformat:2 }}</span>
+              </div>
+              <div class="price-row">
+                <span class="price-label">Spese di spedizione:</span>
+                <span class="price-value">
+                  {% if costo_spedizione == 0 %}
+                    <span class="free-shipping">GRATIS</span>
+                  {% else %}
+                    €{{ costo_spedizione|floatformat:2 }}
+                  {% endif %}
+                </span>
+              </div>
+              <div class="price-row total-row">
+                <span class="price-label">Totale:</span>
+                <span class="price-value total-price">€{{ totale_finale|floatformat:2 }}</span>
+              </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="checkout-actions">
+              <button type="submit" class="btn-complete-order">
+                <span class="btn-icon">🔒</span>
+                Completa Ordine
+              </button>
+              <a href="{% url 'carrello:visualizza' %}" class="btn-back-cart">
+                <span class="btn-icon">←</span>
+                Torna al Carrello
+              </a>
+            </div>
+            
+            <!-- Security Info -->
+            <div class="security-info">
+              <div class="security-icon">🔒</div>
+              <div class="security-text">
+                <p><strong>Pagamento Sicuro</strong></p>
+                <p>I tuoi dati sono protetti con crittografia SSL</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/checkout.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/checkout.js' %}"></script>
+{% endblock %}

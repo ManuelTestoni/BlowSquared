@@ -25,12 +25,12 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('prodotti/', include('prodotti.urls')),
     path('utenti/', include('utenti.urls')),
-    path('negozi/', include('negozi.urls')),  # Nuova app aggiunta
-    # path('carrello/', include('carrello.urls')),
-    # path('admin-dashboard/', include('admin_dashboard.urls')),
-    # path('forum/', include('forum.urls')),
+    path('negozi/', include('negozi.urls')),
+    path('carrello/', include('carrello.urls')),  # Aggiungi l'URL del carrello
 ]
 
 # Servi i file media durante lo sviluppo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -26,6 +26,11 @@ SECRET_KEY = 'django-insecure-!4_f4vim&z^#@%u343e^ki-6@1#a54!6$f-#jt#pa5%g6f*c)_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Custom error handlers
+if not DEBUG:
+    # In produzione, Django userà automaticamente i template 404.html, 500.html, etc.
+    pass
+
 ALLOWED_HOSTS = []
 
 
@@ -40,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'prodotti',
     'utenti',
-    'negozi',  # Nuova app aggiunta
+    'negozi',
+    'carrello',  # Aggiungi l'app carrello
 ]
 
 MIDDLEWARE = [
@@ -135,3 +141,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Login/Logout URLs
+LOGIN_URL = '/utenti/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Il Tuo Carrello - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Cart Header -->
+<section class="cart-header-section">
+  <div class="cart-header-container">
+    <h1 class="cart-title">Il Tuo Carrello</h1>
+    <p class="cart-subtitle">
+      <strong>{{ negozio.citta }}</strong> - {{ negozio.nome }}
+    </p>
+    <!-- Rimosso il contatore cart-stats -->
+  </div>
+</section>
+
+<!-- Cart Content -->
+<section class="cart-content-section">
+  <div class="cart-container">
+    {% if elementi_carrello %}
+    
+    <div class="cart-layout">
+      <!-- Cart Items (Left) -->
+      <div class="cart-items-section">
+        <div class="cart-items-header">
+          <h2 class="items-title">Prodotti nel Carrello</h2>
+          <button class="btn-clear-cart">
+            <span class="btn-icon">🗑️</span>
+            Svuota Carrello
+          </button>
+        </div>
+        
+        <div class="cart-items-list">
+          {% for item in elementi_carrello %}
+          <div class="cart-item" data-item-id="{{ item.id }}">
+            <div class="item-image-container">
+              <img src="{{ item.foto }}" alt="{{ item.nome }}" class="item-image"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="item-image-placeholder" style="display: none;">
+                <div class="placeholder-icon">📦</div>
+              </div>
+            </div>
+            
+            <div class="item-details">
+              <h3 class="item-name">{{ item.nome }}</h3>
+              <p class="item-brand">{{ item.marca }}</p>
+              <div class="item-price-info">
+                <span class="item-unit-price">€{{ item.prezzo_unitario|floatformat:2 }} cad.</span>
+              </div>
+            </div>
+            
+            <div class="item-quantity">
+              <label class="quantity-label">Quantità:</label>
+              <div class="quantity-controls">
+                <button class="quantity-btn quantity-minus" data-action="decrease">-</button>
+                <input type="number" class="quantity-input" value="{{ item.quantita }}" min="1" max="99">
+                <button class="quantity-btn quantity-plus" data-action="increase">+</button>
+              </div>
+            </div>
+            
+            <div class="item-total">
+              <div class="item-total-price">€{{ item.prezzo_totale|floatformat:2 }}</div>
+              <button class="btn-remove-item" data-item-id="{{ item.id }}">
+                <span class="remove-icon">❌</span>
+                Rimuovi
+              </button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <div class="cart-actions">
+          <a href="{% url 'prodotti:list' %}" class="btn-continue-shopping">
+            <span class="btn-icon">🛒</span>
+            Continua gli Acquisti
+          </a>
+        </div>
+      </div>
+      
+      <!-- Order Summary (Right) -->
+      <div class="order-summary-section">
+        <div class="order-summary-box">
+          <h2 class="summary-title">Riepilogo Ordine</h2>
+          
+          <div class="summary-details">
+            <div class="summary-row">
+              <span class="summary-label">Subtotale ({{ totale_quantita }} articoli):</span>
+              <span class="summary-value">€{{ subtotale|floatformat:2 }}</span>
+            </div>
+            
+            <div class="summary-row shipping-row">
+              <span class="summary-label">Spese di spedizione:</span>
+              <span class="summary-value">
+                {% if costo_spedizione == 0 %}
+                  <span class="free-shipping">GRATIS</span>
+                {% else %}
+                  €{{ costo_spedizione|floatformat:2 }}
+                {% endif %}
+              </span>
+            </div>
+            
+            {% if subtotale < soglia_spedizione_gratuita and costo_spedizione > 0 %}
+            <div class="shipping-notice">
+              <p class="shipping-tip">
+                💡 Aggiungi €{{ soglia_spedizione_gratuita|floatformat:2|add:"-"|add:subtotale|floatformat:2 }} 
+                per la spedizione gratuita!
+              </p>
+            </div>
+            {% endif %}
+            
+            <div class="summary-divider"></div>
+            
+            <div class="summary-row total-row">
+              <span class="summary-label total-label">Totale:</span>
+              <span class="summary-value total-value">€{{ totale_finale|floatformat:2 }}</span>
+            </div>
+          </div>
+          
+          <div class="checkout-section">
+            <a href="{% url 'carrello:checkout' %}" class="btn-checkout">
+              <span class="btn-icon">💳</span>
+              Procedi al Checkout
+            </a>
+            
+            <div class="payment-methods">
+              <p class="payment-label">Metodi di pagamento accettati:</p>
+              <div class="payment-icons">
+                <span class="payment-icon">💳</span>
+                <span class="payment-icon">🏧</span>
+                <span class="payment-icon">📱</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="delivery-info">
+            <h4 class="delivery-title">Informazioni Consegna</h4>
+            <div class="delivery-option selected">
+              <span class="delivery-icon">🚚</span>
+              <div class="delivery-details">
+                <p class="delivery-method">Consegna Standard</p>
+                <p class="delivery-time">Entro 24-48 ore</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {% else %}
+    <!-- Empty Cart -->
+    <div class="empty-cart-centered">
+      <div class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <h2 class="empty-cart-title">Il Tuo Carrello è Vuoto</h2>
+        <p class="empty-cart-message">
+          Aggiungi prodotti al carrello per iniziare i tuoi acquisti da {{ negozio.nome }}
+        </p>
+        <a href="{% url 'prodotti:list' %}" class="btn-start-shopping">
+          <span class="btn-icon">🛍️</span>
+          Inizia a Fare Acquisti
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/carrello.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/carrello.js' %}"></script>
+{% endblock %}

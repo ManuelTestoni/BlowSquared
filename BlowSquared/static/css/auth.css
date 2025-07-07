@@ -62,22 +62,16 @@
 
 /* Card con Glass Morphism */
 .auth-card {
-  background: linear-gradient(135deg, 
-    rgba(255, 255, 255, 0.25) 0%,
-    rgba(248, 250, 249, 0.20) 50%,
-    rgba(255, 255, 255, 0.25) 100%);
-  backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-backdrop-filter: blur(20px) saturate(1.8);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 25px;
-  padding: 3rem 2.5rem;
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  padding: 3rem;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  max-width: 650px; /* Ulteriormente aumentato per più spazio */
   position: relative;
-  transform: translateY(0);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
 }
 
 .auth-card:hover {
@@ -314,19 +308,19 @@
   50% { transform: translateY(-10px) rotate(180deg); }
 }
 
-/* Location Section Semplificata */
+/* Location Section Improved */
 .location-section {
-  background: linear-gradient(135deg, rgba(222, 174, 82, 0.1) 0%, rgba(248, 250, 249, 0.8) 100%);
+  background: rgba(62, 116, 71, 0.05);
+  border-radius: 20px;
   padding: 2rem;
-  border-radius: 15px;
   margin: 2rem 0;
-  border: 2px solid rgba(62, 116, 71, 0.2);
+  border: 2px solid rgba(62, 116, 71, 0.1);
 }
 
 .location-title {
-  color: var(--primary-color);
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 700;
+  color: var(--primary-color);
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -336,115 +330,123 @@
 .location-help {
   color: var(--dark-color);
   opacity: 0.8;
-  font-size: 0.9rem;
-  line-height: 1.4;
   margin-bottom: 1.5rem;
-  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.4;
 }
 
+/* Location Fields Grid - Fixed */
 .location-fields {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr; /* Città più larga, provincia più stretta */
   gap: 1.5rem;
+  margin-top: 1rem;
 }
 
-/* Input fields più larghi e visibili */
-.location-input {
+.location-fields .form-group {
+  margin-bottom: 0; /* Rimuovi margin bottom per evitare spaziatura extra */
+}
+
+/* Form Group Improvements */
+.form-group {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 1.2rem 1.5rem;
-  border: 2px solid rgba(62, 116, 71, 0.2);
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: var(--primary-color);
-  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem 1.2rem;
+  border: 2px solid #e8f5e8;
+  border-radius: 15px;
+  font-size: 1rem;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--dark-color);
   box-sizing: border-box;
-  min-width: 300px; /* Larghezza minima per visibilità */
+  font-family: inherit;
 }
 
-.provincia-input {
-  width: 100%;
-  padding: 1.2rem 1.5rem;
-  border: 2px solid rgba(62, 116, 71, 0.2);
-  border-radius: 12px;
-  font-size: 1.1rem;
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(62, 116, 71, 0.1);
+}
+
+/* Label Improvements */
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
   font-weight: 600;
   color: var(--primary-color);
-  background: rgba(255, 255, 255, 0.9);
-  transition: all 0.3s ease;
-  box-sizing: border-box;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  min-width: 120px; /* Larghezza minima per provincia */
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
 }
 
-.location-input:focus,
-.provincia-input:focus {
-  outline: none;
-  border-color: var(--secondary-color);
-  background: white;
-  box-shadow: 0 0 20px rgba(222, 174, 82, 0.2);
-  transform: translateY(-2px);
+.label-icon {
+  font-size: 1.2rem;
 }
 
-.location-input::placeholder,
-.provincia-input::placeholder {
-  color: rgba(62, 116, 71, 0.6);
-  font-style: italic;
-}
-
-/* Responsive location section */
+/* Responsive improvements */
 @media (max-width: 768px) {
+  .auth-card {
+    max-width: 95%;
+    padding: 2rem 1.5rem;
+  }
+  
   .location-fields {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack su mobile */
     gap: 1rem;
   }
   
-  .location-section {
-    padding: 1.5rem;
-  }
-  
-  .location-input,
-  .provincia-input {
-    min-width: auto;
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .location-input,
-  .provincia-input {
-    padding: 1rem 1.2rem;
+  .form-group input,
+  .form-group select {
+    padding: 0.9rem 1rem;
     font-size: 0.95rem;
   }
-}
-  
-  .auth-subtitle {
-    font-size: 1rem;
-  }
-  
-  .location-manual {
-    grid-template-columns: 1fr;
-  }
   
   .location-section {
     padding: 1.5rem;
+    margin: 1.5rem 0;
   }
-
+  
+  .location-title {
+    font-size: 1.2rem;
+  }
+}
 
 @media (max-width: 480px) {
   .auth-card {
     padding: 1.5rem 1rem;
+    max-width: 98%;
   }
   
-  .form-group input {
-    padding: 1rem 1.2rem;
+  .location-help {
+    font-size: 0.85rem;
   }
   
-  .auth-btn {
-    padding: 1.1rem 1.5rem;
-    font-size: 1rem;
+  .form-label {
+    font-size: 0.9rem;
   }
+  
+  .label-icon {
+    font-size: 1.1rem;
+  }
+}
+
+/* Province field specific styling */
+input[name="provincia"] {
+  text-transform: uppercase;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+input[name="provincia"]::placeholder {
+  text-transform: none;
+  font-weight: normal;
+  letter-spacing: normal;
 }

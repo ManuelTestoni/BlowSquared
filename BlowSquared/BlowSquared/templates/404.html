@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pagina Non Trovata - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="error-section">
+  <div class="error-container">
+    <div class="error-layout">
+      <!-- Director Image Section -->
+      <div class="error-image-section">
+        <div class="director-container">
+          <img src="{% static 'img/alessandro_verdi.png' %}" alt="Direttore Alessandro Verdi" class="director-image">
+          <div class="speech-bubble">
+            <p>"Mi dispiace, questa pagina sembra essersi persa nei nostri scaffali!"</p>
+            <div class="bubble-arrow"></div>
+          </div>
+        </div>
+        
+        <div class="error-decoration">
+          <div class="floating-cart">🛒</div>
+          <div class="floating-product">📦</div>
+          <div class="floating-star">⭐</div>
+        </div>
+      </div>
+      
+      <!-- Error Content Section -->
+      <div class="error-content-section">
+        <div class="error-header">
+          <div class="error-code">404</div>
+          <h1 class="error-title">Oops! Pagina Non Trovata</h1>
+          <p class="error-subtitle">
+            La pagina che stai cercando non esiste o è stata spostata nel nostro magazzino digitale.
+          </p>
+        </div>
+        
+        <div class="error-message">
+          <div class="message-box">
+            <div class="message-icon">🔍</div>
+            <div class="message-content">
+              <h3>Cosa puoi fare:</h3>
+              <ul class="suggestions-list">
+                <li>Controlla l'URL per eventuali errori di battitura</li>
+                <li>Torna alla homepage e riprova la navigazione</li>
+                <li>Usa la barra di ricerca per trovare i prodotti</li>
+                <li>Contatta il nostro team se il problema persiste</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="error-actions">
+          <a href="{% url 'home' %}" class="btn-primary-404">
+            <span class="btn-icon">🏠</span>
+            Torna alla Homepage
+          </a>
+          <a href="{% url 'prodotti:list' %}" class="btn-secondary-404">
+            <span class="btn-icon">🛍️</span>
+            Vai ai Prodotti
+          </a>
+          <a href="{% url 'negozi:seleziona_negozio' %}" class="btn-tertiary-404">
+            <span class="btn-icon">🏪</span>
+            Trova un Negozio
+          </a>
+        </div>
+        
+        <div class="error-help">
+          <div class="help-card">
+            <h4>Hai bisogno di aiuto?</h4>
+            <p>Il nostro team è sempre a disposizione per assisterti.</p>
+            <div class="contact-options">
+              <span class="contact-item">📞 +39 051 123 4567</span>
+              <span class="contact-item">📧 info@blowsquared.it</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/error-pages.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Piccola animazione per gli elementi fluttuanti
+document.addEventListener('DOMContentLoaded', function() {
+  const floatingElements = document.querySelectorAll('.floating-cart, .floating-product, .floating-star');
+  
+  floatingElements.forEach((element, index) => {
+    element.style.animation = `float ${3 + index}s ease-in-out infinite`;
+    element.style.animationDelay = `${index * 0.5}s`;
+  });
+});
+</script>
+{% endblock %}

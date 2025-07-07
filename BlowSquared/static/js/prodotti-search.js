@@ -72,6 +72,110 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300); // Debounce di 300ms
     }
     
+    function renderProductsGrid(prodotti) {
+        const grid = document.getElementById('products-grid');
+        
+        if (prodotti.length === 0) {
+            grid.innerHTML = `
+                <div class="no-products">
+                    <div class="no-products-icon">🛒</div>
+                    <h3>Nessun prodotto trovato</h3>
+                    <p>Prova a modificare i filtri di ricerca</p>
+                </div>
+            `;
+            return;
+        }
+        
+        grid.innerHTML = prodotti.map(prodotto => `
+            <div class="product-card">
+                <div class="product-image-container">
+                    <a href="/prodotti/${prodotto.id}/" class="product-image-link">
+                        ${prodotto.foto ? 
+                            `<img src="${prodotto.foto}" alt="${prodotto.nome}" class="product-image">` :
+                            `<div class="product-placeholder">
+                                <div class="placeholder-icon">📦</div>
+                                <span>${prodotto.nome.substring(0, 15)}</span>
+                            </div>`
+                        }
+                    </a>
+                    
+                    ${prodotto.sconto > 0 ? 
+                        `<div class="product-discount">-${Math.floor(prodotto.sconto)}%</div>` : ''
+                    }
+                    
+                    <div class="product-category-badge">${prodotto.categoria}</div>
+                    
+                    ${prodotto.stock <= 5 && prodotto.stock > 0 ? 
+                        `<div class="product-low-stock">Ultime ${prodotto.stock} disponibili</div>` : 
+                        prodotto.stock === 0 ? 
+                        `<div class="product-out-stock">Esaurito</div>` : ''
+                    }
+                </div>
+                
+                <div class="product-info">
+                    <h3 class="product-name">${prodotto.nome.substring(0, 50)}${prodotto.nome.length > 50 ? '...' : ''}</h3>
+                    <p class="product-brand">${prodotto.marca}</p>
+                    
+                    <div class="product-price">
+                        ${prodotto.sconto > 0 ? 
+                            `<span class="original-price">€${prodotto.prezzo}</span>
+                             <span class="discounted-price">€${parseFloat(prodotto.prezzo_scontato).toFixed(2)}</span>` :
+                            `<span class="current-price">€${prodotto.prezzo}</span>`
+                        }
+                    </div>
+                    
+                    <p class="product-description">
+                        ${prodotto.descrizione.substring(0, 100)}${prodotto.descrizione.length > 100 ? '...' : ''}
+                    </p>
+                    
+                    <div class="product-meta">
+                        <span class="product-weight">${prodotto.peso}</span>
+                        ${prodotto.numero_recensioni > 0 ? 
+                            `<span class="product-reviews">${prodotto.numero_recensioni} recensioni</span>` : ''
+                        }
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn-add-cart" data-product-id="${prodotto.prodotto_id}" ${prodotto.stock === 0 ? 'disabled' : ''}>
+                            ${prodotto.stock === 0 ? 
+                                'Non disponibile' : 
+                                '<span class="btn-icon">🛒</span> Aggiungi al carrello'
+                            }
+                        </button>
+                        <a href="/prodotti/${prodotto.id}/" class="btn-info">
+                            <span class="btn-icon">👁️</span>
+                            Info
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Riattiva gli event listeners per i nuovi pulsanti del carrello
+        attachCartEventListeners();
+    }
+    
+    function attachCartEventListeners() {
+        // Rimuovi i vecchi listener per evitare duplicati
+        const oldButtons = document.querySelectorAll('.btn-add-cart[data-listener="true"]');
+        oldButtons.forEach(btn => btn.removeAttribute('data-listener'));
+        
+        // Aggiungi nuovi listener
+        const addToCartButtons = document.querySelectorAll('.btn-add-cart:not([data-listener="true"])');
+        addToCartButtons.forEach(button => {
+            button.setAttribute('data-listener', 'true');
+            button.addEventListener('click', function() {
+                const prodottoId = this.dataset.productId;
+                if (prodottoId && !this.disabled) {
+                    // Usa la funzione dal file prodotti-carrello.js
+                    if (typeof aggiungiAlCarrello === 'function') {
+                        aggiungiAlCarrello(prodottoId, 1, this);
+                    }
+                }
+            });
+        });
+    }
+    
     // Funzione per aggiornare la griglia dei prodotti
     function updateProductsGrid(prodotti) {
         if (prodotti.length === 0) {
@@ -182,4 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             performSearch();
         }
     });
+    
+    // Attiva i listener iniziali
+    attachCartEventListeners();
 });
