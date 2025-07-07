@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'prodotti',
     'utenti',
     'negozi',
-    'carrello',  # Aggiungi l'app carrello
+    'carrello',
+    'volantino', 
 ]
 
 MIDDLEWARE = [

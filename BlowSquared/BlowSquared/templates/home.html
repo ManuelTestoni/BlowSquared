@@ -159,6 +159,87 @@
     </div>
   </section>
 
+  <!-- Volantino Section -->
+  <section class="flyer-section">
+    <div class="flyer-container">
+      <div class="flyer-content">
+        <div class="flyer-text">
+          <div class="flyer-header">
+            <h2 class="flyer-title">🗞️ Sfoglia il Nostro Volantino</h2>
+            <p class="flyer-subtitle">Scopri tutte le offerte del mese e i prodotti in promozione</p>
+          </div>
+          
+          <div class="flyer-features">
+            <div class="flyer-feature">
+              <span class="feature-icon">🔥</span>
+              <span class="feature-text">Offerte esclusive fino al 50%</span>
+            </div>
+            <div class="flyer-feature">
+              <span class="feature-icon">📅</span>
+              <span class="feature-text">Aggiornato ogni settimana</span>
+            </div>
+            <div class="flyer-feature">
+              <span class="feature-icon">📱</span>
+              <span class="feature-text">Visualizzazione interattiva</span>
+            </div>
+          </div>
+          
+          <div class="flyer-actions">
+            <a href="{% url 'volantino:sfoglia' %}" class="btn-flyer-primary">
+              <span class="btn-icon">👁️</span>
+              Sfoglia il Volantino
+            </a>
+            <!-- Rimosso il pulsante Scarica PDF -->
+          </div>
+        </div>
+        
+        <div class="flyer-visual">
+          <div class="flyer-preview">
+            <div class="flyer-pages">
+              <div class="flyer-page front">
+                <img src="{% static 'img/volantino-preview-1.jpg' %}" alt="Anteprima Volantino Pagina 1" 
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="flyer-placeholder" style="display: none;">
+                  <div class="placeholder-content">
+                    <div class="placeholder-icon">📰</div>
+                    <h4>Volantino del Mese</h4>
+                    <p>Offerte Speciali</p>
+                  </div>
+                </div>
+              </div>
+              <div class="flyer-page back">
+                <img src="{% static 'img/volantino-preview-2.jpg' %}" alt="Anteprima Volantino Pagina 2"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="flyer-placeholder" style="display: none;">
+                  <div class="placeholder-content">
+                    <div class="placeholder-icon">🛒</div>
+                    <h4>Prodotti in Offerta</h4>
+                    <p>Sconti Imperdibili</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flyer-badge">
+              <span class="badge-text">NUOVO</span>
+            </div>
+            
+            <div class="flyer-stats">
+              <div class="stat-item">
+                <span class="stat-number">8</span>
+                <span class="stat-label">Pagine</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">50+</span>
+                <span class="stat-label">Offerte</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Team Section -->
   <section class="team-section">
     <div class="team-container">
@@ -301,5 +382,6 @@
 <script src="{% static 'js/carousel.js' %}"></script>
 <script src="{% static 'js/team.js' %}"></script>
 {% endblock %}
+
 
 

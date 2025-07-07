@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sfoglia Volantino - BlowSquared{% endblock %}
+
+{% block content %}
+<!-- Flyer Header -->
+<section class="flyer-viewer-header">
+  <div class="flyer-header-container">
+    <h1 class="flyer-viewer-title">{{ volantino.titolo }}</h1>
+    <p class="flyer-viewer-subtitle">{{ volantino.sottotitolo }}</p>
+    <div class="flyer-info">
+      <span class="flyer-date">{{ volantino.data_inizio }} - {{ volantino.data_fine }}</span>
+      <span class="flyer-pages">{{ volantino.numero_pagine }} pagine</span>
+    </div>
+  </div>
+</section>
+
+<!-- Flyer Viewer -->
+<section class="flyer-viewer-section">
+  <div class="flyer-viewer-container">
+    
+    <!-- Viewer Controls -->
+    <div class="viewer-controls">
+      <button id="zoomOut" class="control-btn" title="Riduci zoom">🔍➖</button>
+      <button id="zoomIn" class="control-btn" title="Aumenta zoom">🔍➕</button>
+      <button id="fullscreen" class="control-btn" title="Schermo intero">⛶</button>
+    </div>
+    
+    <!-- Main Viewer -->
+    <div class="flipbook-container" id="flipbook">
+      <div class="flipbook-viewport">
+        <div class="flipbook-pages" id="flipbookPages">
+          {% for pagina in volantino.pagine %}
+          <div class="flipbook-page" data-page="{{ pagina.numero }}">
+            <div class="page-content">
+              <img src="{{ pagina.immagine }}" alt="{{ pagina.titolo }}" class="page-image"
+                   data-page-num="{{ pagina.numero }}"
+                   onerror="console.error('Errore caricamento pagina {{ pagina.numero }}:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+              <div class="page-placeholder" style="display: none;">
+                <div class="placeholder-content">
+                  <div class="placeholder-icon">📰</div>
+                  <h3>{{ pagina.titolo }}</h3>
+                  <p>Pagina {{ pagina.numero }}</p>
+                  <small style="color: red;">File non trovato: {{ pagina.immagine }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <!-- Navigation Arrows -->
+      <button class="flipbook-nav prev-page" id="prevPage" title="Pagina precedente">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="flipbook-nav next-page" id="nextPage" title="Pagina successiva">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Page Navigation -->
+    <div class="page-navigation">
+      <div class="page-counter">
+        <span id="currentPage">1</span> / <span id="totalPages">{{ volantino.numero_pagine }}</span>
+      </div>
+      
+      <div class="page-thumbnails" id="thumbnails">
+        {% for pagina in volantino.pagine %}
+        <button class="thumbnail {% if pagina.numero == 1 %}active{% endif %}" 
+                data-page="{{ pagina.numero }}" title="Vai alla pagina {{ pagina.numero }}">
+          <img src="{{ pagina.immagine }}" alt="Pagina {{ pagina.numero }}"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div class="thumb-placeholder" style="display: none;">{{ pagina.numero }}</div>
+          <span class="thumb-number">{{ pagina.numero }}</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="{% url 'prodotti:list' %}" class="action-btn primary">
+        <span class="btn-icon">🛒</span>
+        Vai ai Prodotti
+      </a>
+      <a href="{% url 'negozi:seleziona_negozio' %}" class="action-btn secondary">
+        <span class="btn-icon">🏪</span>
+        Trova Negozio
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/volantino.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/volantino-viewer.js' %}"></script>
+{% endblock %}
+
