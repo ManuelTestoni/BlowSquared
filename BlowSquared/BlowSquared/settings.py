@@ -43,11 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',  # Aggiungi Channels
     'prodotti',
     'utenti',
     'negozi',
     'carrello',
-    'volantino', 
+    'volantino',
+    'forum',  # Nuova app forum
 ]
 
 MIDDLEWARE = [
@@ -78,6 +80,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'BlowSquared.wsgi.application'
+
+# Channels Configuration
+ASGI_APPLICATION = 'BlowSquared.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 
 # Database

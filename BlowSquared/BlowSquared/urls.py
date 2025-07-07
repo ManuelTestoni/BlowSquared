@@ -27,7 +27,8 @@ urlpatterns = [
     path('utenti/', include('utenti.urls')),
     path('negozi/', include('negozi.urls')),
     path('carrello/', include('carrello.urls')),
-    path('volantino/', include('volantino.urls')),  # Ora attivo
+    path('volantino/', include('volantino.urls')),
+    path('forum/', include('forum.urls')),  # Aggiungi il forum
 ]
 
 # Servi i file media durante lo sviluppo

@@ -14,14 +14,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.2">
-  <link rel="stylesheet" href="{% static 'css/loader.css' %}?v=1.2">
   <link rel="stylesheet" href="{% static 'css/home.css' %}?v=1.2">
   <link rel="stylesheet" href="{% static 'css/prodotti.css' %}?v=1.2">
   {% block extra_css %}{% endblock %}
 </head>
 <body>
   <!-- Theater Loader - SOLO PER LA HOME -->
-  {% if request.resolver_match.url_name == 'home' %}
+  {% if request.resolver_match.url_name == 'home' and request.resolver_match.app_name == None %}
+  <link rel="stylesheet" href="{% static 'css/loader.css' %}?v=1.2">
   <div id="page-loader" class="page-loader">
     <div class="stage">
       <div class="stage-lights"></div>

@@ -12,7 +12,9 @@
         <a href="{% url 'negozi:seleziona_negozio' %}" class="nav-link" title="Seleziona prima un negozio">Prodotti</a>
       {% endif %}
       <a href="{% url 'negozi:seleziona_negozio' %}" class="nav-link">Negozi</a>
-      <a href="#forum" class="nav-link">Forum</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'forum:home' %}" class="nav-link">Forum</a>
+      {% endif %}
     </div>
     <div class="nav-auth">
       {% if user.is_authenticated %}
