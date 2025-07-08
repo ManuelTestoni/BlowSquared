@@ -170,6 +170,55 @@
             <span class="title-icon">📦</span>
             Storico Ordini
           </h3>
+          
+          {% if ordini_recenti %}
+          <div class="orders-list">
+            {% for ordine in ordini_recenti %}
+            <div class="order-item">
+              <div class="order-header">
+                <div class="order-code">
+                  <strong>Ordine #{{ ordine.codice_ordine }}</strong>
+                  <span class="order-date">{{ ordine.data_ordine|date:"d/m/Y H:i" }}</span>
+                </div>
+                <div class="order-status">
+                  <span class="status-badge {{ ordine.stato }}">{{ ordine.get_stato_display }}</span>
+                </div>
+              </div>
+              
+              <div class="order-details">
+                <div class="order-info">
+                  <div class="info-item">
+                    <span class="info-label">Negozio:</span>
+                    <span class="info-value">{{ ordine.negozio.nome }} - {{ ordine.negozio.citta }}</span>
+                  </div>
+                  <div class="info-item">
+                    <span class="info-label">Consegna:</span>
+                    <span class="info-value">{{ ordine.indirizzo }}, {{ ordine.citta }}</span>
+                  </div>
+                  {% if ordine.note_consegna %}
+                  <div class="info-item">
+                    <span class="info-label">Note:</span>
+                    <span class="info-value">{{ ordine.note_consegna|truncatechars:50 }}</span>
+                  </div>
+                  {% endif %}
+                </div>
+                
+                <div class="order-totals">
+                  <div class="total-amount">€{{ ordine.totale_finale|floatformat:2 }}</div>
+                  <div class="total-items">{{ ordine.elementi.count }} prodotti</div>
+                </div>
+              </div>
+              
+              <div class="order-actions">
+                <a href="{% url 'carrello:ordine_completato' ordine.codice_ordine %}" class="btn-view-order">
+                  <span class="btn-icon">👁️</span>
+                  Visualizza
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
           <div class="orders-placeholder">
             <div class="placeholder-content">
               <div class="placeholder-icon">🛒</div>
@@ -180,6 +229,7 @@
               </a>
             </div>
           </div>
+          {% endif %}
         </div>
       </div>
 
@@ -198,7 +248,6 @@
           </div>
           
           {% if liste_spesa %}
-          <!-- DEBUG: {{ liste_spesa|length }} liste trovate -->
           <div class="lists-container">
             {% for lista in liste_spesa %}
             <div class="list-item {% if lista.completata %}completed{% endif %}" data-lista-id="{{ lista.id }}">
@@ -238,20 +287,18 @@
                   <span class="btn-icon">👁️</span>
                 </button>
                 {% if not lista.completata %}
-                <a href="{% url 'utenti:ordina_lista' lista.id %}" class="action-btn order-btn" title="Ordina">
+                <button class="action-btn cart-btn" onclick="aggiungiListaAlCarrello({{ lista.id }})" title="Aggiungi al Carrello">
                   <span class="btn-icon">🛒</span>
-                </a>
+                </button>
                 {% endif %}
-                <a href="{% url 'utenti:elimina_lista' lista.id %}" class="action-btn delete-btn" title="Elimina" 
-                   onclick="return confirm('Sei sicuro di voler eliminare la lista {{ lista.nome|escapejs }}?')">
+                <button class="action-btn delete-btn" onclick="eliminaLista({{ lista.id }}, '{{ lista.nome|escapejs }}')" title="Elimina">
                   <span class="btn-icon">🗑️</span>
-                </a>
+                </button>
               </div>
             </div>
             {% endfor %}
           </div>
           {% else %}
-          <!-- DEBUG: Nessuna lista trovata -->
           <div class="lists-placeholder">
             <div class="placeholder-content">
               <div class="placeholder-icon">📋</div>
@@ -328,6 +375,10 @@
     </div>
   </div>
 </div>
+
+<!-- Hidden CSRF Token -->
+{% csrf_token %}
+
 {% endblock %}
 
 {% block extra_css %}
@@ -337,6 +388,139 @@
 {% block extra_js %}
 <script src="{% static 'js/profile.js' %}"></script>
 <script>
+// Funzione per ottenere il token CSRF
+function getCsrfToken() {
+    // Prova a trovare il token nel DOM
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    
+    // Fallback: cerca nei cookie
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    
+    console.error('CSRF token non trovato');
+    return '';
+}
+
+// Funzione per eliminare lista
+function eliminaLista(listaId, nomeLista) {
+    if (!confirm(`Sei sicuro di voler eliminare la lista "${nomeLista}"?`)) {
+        return;
+    }
+    
+    console.log('Eliminazione lista:', listaId);
+    
+    const csrfToken = getCsrfToken();
+    
+    fetch(`/utenti/liste-spesa/${listaId}/elimina/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            
+            // Rimuovi la lista dal DOM
+            const listaElement = document.querySelector(`[data-lista-id="${listaId}"]`);
+            if (listaElement) {
+                listaElement.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    listaElement.remove();
+                    
+                    // Se non ci sono più liste, mostra il placeholder
+                    const listsContainer = document.querySelector('.lists-container');
+                    if (listsContainer && listsContainer.children.length === 0) {
+                        listsContainer.innerHTML = `
+                            <div class="lists-placeholder">
+                                <div class="placeholder-content">
+                                    <div class="placeholder-icon">📋</div>
+                                    <h4>Nessuna Lista Creata</h4>
+                                    <p>Crea liste della spesa personalizzate per organizzare i tuoi acquisti!</p>
+                                    <a href="/utenti/liste-spesa/crea/" class="placeholder-btn">
+                                        Crea la Tua Prima Lista
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }, 300);
+            }
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Errore eliminazione:', error);
+        showNotification('Errore durante l\'eliminazione. Riprova.', 'error');
+    });
+}
+
+// Funzione per aggiungere lista al carrello (più specifica)
+function aggiungiListaAlCarrello(listaId) {
+    console.log('Tentativo aggiunta SPECIFICA lista al carrello:', listaId);
+    
+    // Mostra loading sul pulsante SPECIFICO
+    const btnCarrello = document.querySelector(`[data-lista-id="${listaId}"] .cart-btn`);
+    if (!btnCarrello) {
+        console.error('Pulsante carrello non trovato per lista:', listaId);
+        return;
+    }
+    
+    const originalHtml = btnCarrello.innerHTML;
+    btnCarrello.innerHTML = '<span class="btn-icon">⏳</span>';
+    btnCarrello.disabled = true;
+    
+    const csrfToken = getCsrfToken();
+    console.log('CSRF Token:', csrfToken ? 'Trovato' : 'Non trovato');
+    
+    fetch(`/utenti/liste-spesa/${listaId}/aggiungi-al-carrello/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data per lista', listaId, ':', data);
+        if (data.success) {
+            // Mostra notifica di successo semplice
+            showNotification('Lista correttamente aggiunta al carrello', 'success');
+            
+            // Aggiorna il contatore del carrello se presente
+            if (data.carrello_count) {
+                updateCartCount(data.carrello_count);
+            }
+        } else {
+            showNotification(data.message || 'Errore durante l\'aggiunta al carrello', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Errore fetch lista', listaId, ':', error);
+        showNotification('Errore di connessione. Riprova.', 'error');
+    })
+    .finally(() => {
+        // Ripristina il pulsante
+        btnCarrello.innerHTML = originalHtml;
+        btnCarrello.disabled = false;
+    });
+}
+
 // Funzioni JavaScript per le liste
 function visualizzaLista(listaId) {
     fetch(`/utenti/liste-spesa/${listaId}/visualizza/`, {
@@ -426,5 +610,47 @@ document.addEventListener('keydown', function(e) {
         chiudiPopupLista();
     }
 });
+
+// Funzione per mostrare notifiche
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">${type === 'success' ? '✅' : '❌'}</span>
+            <span class="notification-text">${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Mostra la notifica
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Rimuovi dopo 4 secondi
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Funzione per aggiornare il contatore del carrello
+function updateCartCount(count) {
+    const cartCounters = document.querySelectorAll('.cart-count, .cart-badge');
+    cartCounters.forEach(counter => {
+        counter.textContent = count;
+        counter.style.display = count > 0 ? 'inline' : 'none';
+    });
+}
 </script>
+
+<style>
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.9); }
+}
+</style>
+
 {% endblock %}
+
+

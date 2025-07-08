@@ -31,12 +31,12 @@
 <!-- Checkout Content -->
 <section class="checkout-content-section">
   <div class="checkout-container">
-    <form id="checkoutForm" class="checkout-form" method="post">
+    <form method="POST" id="checkoutForm" class="checkout-form">
       {% csrf_token %}
       
       <div class="checkout-layout">
         <!-- Left Column - Forms -->
-        <div class="checkout-forms">
+        <div class="checkout-form-section">
           
           <!-- Personal Information -->
           <div class="form-section">
@@ -47,106 +47,116 @@
             
             <div class="form-grid">
               <div class="form-group">
-                <label for="nome" class="form-label">Nome *</label>
-                <input type="text" id="nome" name="nome" class="form-input" required>
-                <span class="error-message" id="nome-error"></span>
+                <label for="nome_completo" class="form-label">Nome Completo *</label>
+                <input type="text" id="nome_completo" name="nome_completo" class="form-input" required 
+                       value="{{ user.get_full_name|default:user.username }}"
+                       placeholder="Nome e Cognome">
+                <span class="error-message" id="nome-completo-error"></span>
               </div>
               
               <div class="form-group">
-                <label for="cognome" class="form-label">Cognome *</label>
-                <input type="text" id="cognome" name="cognome" class="form-input" required>
-                <span class="error-message" id="cognome-error"></span>
-              </div>
-              
-              <div class="form-group full-width">
                 <label for="email" class="form-label">Email *</label>
-                <input type="email" id="email" name="email" class="form-input" value="{{ user.email }}" required>
+                <input type="email" id="email" name="email" class="form-input" required 
+                       value="{{ user.email }}"
+                       placeholder="email@esempio.com">
                 <span class="error-message" id="email-error"></span>
               </div>
               
               <div class="form-group">
                 <label for="telefono" class="form-label">Telefono *</label>
-                <input type="tel" id="telefono" name="telefono" class="form-input" placeholder="+39 123 456 7890" required>
+                <input type="tel" id="telefono" name="telefono" class="form-input" required 
+                       placeholder="+39 123 456 7890">
                 <span class="error-message" id="telefono-error"></span>
               </div>
             </div>
           </div>
           
-          <!-- Shipping Address -->
+          <!-- Delivery Address -->
           <div class="form-section">
             <h2 class="section-title">
-              <span class="section-icon">📍</span>
-              Indirizzo di Spedizione
+              <span class="section-icon">🚚</span>
+              Indirizzo di Consegna
             </h2>
             
             <div class="form-grid">
               <div class="form-group full-width">
-                <label for="indirizzo-spedizione" class="form-label">Via / Piazza *</label>
-                <input type="text" id="indirizzo-spedizione" name="indirizzo_spedizione" class="form-input" placeholder="Es. Via Roma, 123" required>
-                <span class="error-message" id="indirizzo-spedizione-error"></span>
+                <label for="indirizzo" class="form-label">Via / Piazza *</label>
+                <input type="text" id="indirizzo" name="indirizzo" class="form-input" required 
+                       placeholder="Es. Via Roma, 123">
+                <span class="error-message" id="indirizzo-error"></span>
               </div>
               
               <div class="form-group">
-                <label for="citta-spedizione" class="form-label">Città *</label>
-                <input type="text" id="citta-spedizione" name="citta_spedizione" class="form-input" value="{{ user.profilo.citta }}" required>
-                <span class="error-message" id="citta-spedizione-error"></span>
+                <label for="citta" class="form-label">Città *</label>
+                <input type="text" id="citta" name="citta" class="form-input" required 
+                       value="{{ user.profilo.citta|default:'' }}"
+                       placeholder="Nome città">
+                <span class="error-message" id="citta-error"></span>
               </div>
               
               <div class="form-group">
-                <label for="cap-spedizione" class="form-label">CAP *</label>
-                <input type="text" id="cap-spedizione" name="cap_spedizione" class="form-input" placeholder="40100" pattern="[0-9]{5}" required>
-                <span class="error-message" id="cap-spedizione-error"></span>
+                <label for="cap" class="form-label">CAP *</label>
+                <input type="text" id="cap" name="cap" class="form-input" required 
+                       pattern="[0-9]{5}" maxlength="5"
+                       placeholder="12345">
+                <span class="error-message" id="cap-error"></span>
               </div>
               
               <div class="form-group">
-                <label for="provincia-spedizione" class="form-label">Provincia *</label>
-                <input type="text" id="provincia-spedizione" name="provincia_spedizione" class="form-input" value="{{ user.profilo.provincia }}" maxlength="2" style="text-transform: uppercase;" required>
-                <span class="error-message" id="provincia-spedizione-error"></span>
+                <label for="provincia" class="form-label">Provincia *</label>
+                <input type="text" id="provincia" name="provincia" class="form-input" required 
+                       value="{{ user.profilo.provincia|default:'' }}"
+                       maxlength="2" style="text-transform: uppercase;"
+                       placeholder="MO">
+                <span class="error-message" id="provincia-error"></span>
               </div>
             </div>
           </div>
           
-          <!-- Billing Address Toggle -->
+          <!-- Billing Address Checkbox -->
           <div class="form-section">
-            <div class="address-toggle">
+            <div class="checkbox-group">
               <label class="checkbox-container">
-                <input type="checkbox" id="same-address" name="same_address" checked>
+                <input type="checkbox" id="different-billing" name="different_billing">
                 <span class="checkmark"></span>
-                <span class="checkbox-label">L'indirizzo di fatturazione è uguale a quello di spedizione</span>
+                <span class="checkbox-text">I dati di fatturazione sono diversi da quelli di consegna</span>
               </label>
             </div>
-          </div>
-          
-          <!-- Billing Address (Initially Hidden) -->
-          <div class="form-section" id="billing-section" style="display: none;">
-            <h2 class="section-title">
-              <span class="section-icon">📄</span>
-              Indirizzo di Fatturazione
-            </h2>
             
-            <div class="form-grid">
-              <div class="form-group full-width">
-                <label for="indirizzo-fatturazione" class="form-label">Via / Piazza *</label>
-                <input type="text" id="indirizzo-fatturazione" name="indirizzo_fatturazione" class="form-input" placeholder="Es. Via Roma, 123">
-                <span class="error-message" id="indirizzo-fatturazione-error"></span>
-              </div>
+            <!-- Billing Address Form (Initially Hidden) -->
+            <div id="billing-address-form" class="billing-form" style="display: none;">
+              <h3 class="subsection-title">
+                <span class="subsection-icon">📋</span>
+                Indirizzo di Fatturazione
+              </h3>
               
-              <div class="form-group">
-                <label for="citta-fatturazione" class="form-label">Città *</label>
-                <input type="text" id="citta-fatturazione" name="citta_fatturazione" class="form-input">
-                <span class="error-message" id="citta-fatturazione-error"></span>
-              </div>
-              
-              <div class="form-group">
-                <label for="cap-fatturazione" class="form-label">CAP *</label>
-                <input type="text" id="cap-fatturazione" name="cap_fatturazione" class="form-input" placeholder="40100" pattern="[0-9]{5}">
-                <span class="error-message" id="cap-fatturazione-error"></span>
-              </div>
-              
-              <div class="form-group">
-                <label for="provincia-fatturazione" class="form-label">Provincia *</label>
-                <input type="text" id="provincia-fatturazione" name="provincia_fatturazione" class="form-input" maxlength="2" style="text-transform: uppercase;">
-                <span class="error-message" id="provincia-fatturazione-error"></span>
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label for="indirizzo-fatturazione" class="form-label">Via / Piazza *</label>
+                  <input type="text" id="indirizzo-fatturazione" name="indirizzo_fatturazione" class="form-input" 
+                         placeholder="Es. Via Roma, 123">
+                  <span class="error-message" id="indirizzo-fatturazione-error"></span>
+                </div>
+                
+                <div class="form-group">
+                  <label for="citta-fatturazione" class="form-label">Città *</label>
+                  <input type="text" id="citta-fatturazione" name="citta_fatturazione" class="form-input">
+                  <span class="error-message" id="citta-fatturazione-error"></span>
+                </div>
+                
+                <div class="form-group">
+                  <label for="cap-fatturazione" class="form-label">CAP *</label>
+                  <input type="text" id="cap-fatturazione" name="cap_fatturazione" class="form-input" 
+                         placeholder="12345" pattern="[0-9]{5}" maxlength="5">
+                  <span class="error-message" id="cap-fatturazione-error"></span>
+                </div>
+                
+                <div class="form-group">
+                  <label for="provincia-fatturazione" class="form-label">Provincia *</label>
+                  <input type="text" id="provincia-fatturazione" name="provincia_fatturazione" class="form-input" 
+                         maxlength="2" style="text-transform: uppercase;">
+                  <span class="error-message" id="provincia-fatturazione-error"></span>
+                </div>
               </div>
             </div>
           </div>
@@ -171,25 +181,29 @@
             <div class="form-grid" id="credit-card-form">
               <div class="form-group full-width">
                 <label for="numero-carta" class="form-label">Numero Carta *</label>
-                <input type="text" id="numero-carta" name="numero_carta" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19" required>
+                <input type="text" id="numero-carta" name="numero_carta" class="form-input" 
+                       placeholder="1234 5678 9012 3456" maxlength="19" required>
                 <span class="error-message" id="numero-carta-error"></span>
               </div>
               
               <div class="form-group full-width">
                 <label for="intestatario-carta" class="form-label">Intestatario Carta *</label>
-                <input type="text" id="intestatario-carta" name="intestatario_carta" class="form-input" placeholder="MARIO ROSSI" style="text-transform: uppercase;" required>
+                <input type="text" id="intestatario-carta" name="intestatario_carta" class="form-input" 
+                       placeholder="MARIO ROSSI" style="text-transform: uppercase;" required>
                 <span class="error-message" id="intestatario-carta-error"></span>
               </div>
               
               <div class="form-group">
                 <label for="scadenza-carta" class="form-label">Scadenza *</label>
-                <input type="text" id="scadenza-carta" name="scadenza_carta" class="form-input" placeholder="MM/YY" maxlength="5" required>
+                <input type="text" id="scadenza-carta" name="scadenza_carta" class="form-input" 
+                       placeholder="MM/YY" maxlength="5" required>
                 <span class="error-message" id="scadenza-carta-error"></span>
               </div>
               
               <div class="form-group">
                 <label for="cvv-carta" class="form-label">CVV *</label>
-                <input type="text" id="cvv-carta" name="cvv_carta" class="form-input" placeholder="123" maxlength="4" required>
+                <input type="text" id="cvv-carta" name="cvv_carta" class="form-input" 
+                       placeholder="123" maxlength="4" required>
                 <span class="error-message" id="cvv-carta-error"></span>
               </div>
             </div>
@@ -203,8 +217,9 @@
             </h2>
             
             <div class="form-group">
-              <label for="note-ordine" class="form-label">Note Aggiuntive (Facoltativo)</label>
-              <textarea id="note-ordine" name="note_ordine" class="form-textarea" rows="4" placeholder="Inserisci eventuali note per la consegna o richieste speciali..."></textarea>
+              <label for="note_consegna" class="form-label">Note Aggiuntive (Facoltativo)</label>
+              <textarea id="note_consegna" name="note_consegna" class="form-textarea" rows="4" 
+                        placeholder="Inserisci eventuali note per la consegna o richieste speciali..."></textarea>
             </div>
           </div>
         </div>
@@ -213,6 +228,13 @@
         <div class="order-summary-sticky">
           <div class="order-summary-card">
             <h2 class="summary-title">Riepilogo Ordine</h2>
+            
+            <!-- Store Info -->
+            <div class="store-info">
+              <h4>🏪 Negozio Selezionato</h4>
+              <p><strong>{{ negozio.nome }}</strong></p>
+              <p>{{ negozio.indirizzo_completo }}</p>
+            </div>
             
             <!-- Order Items -->
             <div class="summary-items">
@@ -290,4 +312,32 @@
 
 {% block extra_js %}
 <script src="{% static 'js/checkout.js' %}"></script>
+<script>
+// Debug aggiuntivo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Checkout page loaded');
+    
+    const form = document.getElementById('checkoutForm');
+    if (form) {
+        console.log('Form found');
+        
+        // Aggiungi event listener per il debug
+        form.addEventListener('submit', function(e) {
+            console.log('Form submit event fired');
+        });
+        
+        // Debug del pulsante
+        const submitBtn = document.querySelector('.btn-complete-order');
+        if (submitBtn) {
+            console.log('Submit button found');
+            submitBtn.addEventListener('click', function(e) {
+                console.log('Submit button clicked');
+            });
+        }
+    } else {
+        console.log('Form NOT found');
+    }
+});
+</script>
 {% endblock %}
+

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ordine Completato - BlowSquared{% endblock %}
+
+{% block content %}
+<section class="order-success-section">
+  <div class="order-success-container">
+    
+    <!-- Success Header -->
+    <div class="success-header">
+      <div class="success-icon">✅</div>
+      <h1 class="success-title">Ordine Completato con Successo!</h1>
+      <p class="success-subtitle">Grazie per aver scelto BlowSquared</p>
+    </div>
+    
+    <!-- Order Details -->
+    <div class="order-details-card">
+      <div class="order-info-header">
+        <h2>Dettagli Ordine</h2>
+        <div class="order-code">Codice: #{{ ordine.codice_ordine }}</div>
+      </div>
+      
+      <div class="order-info-grid">
+        <div class="info-section">
+          <h3>📦 Informazioni Ordine</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">Data Ordine:</span>
+              <span class="info-value">{{ ordine.data_ordine|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Stato:</span>
+              <span class="info-value status-confirmed">{{ ordine.get_stato_display }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Negozio:</span>
+              <span class="info-value">{{ ordine.negozio.nome }} - {{ ordine.negozio.citta }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-section">
+          <h3>🚚 Consegna</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">Nome:</span>
+              <span class="info-value">{{ ordine.nome_completo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Indirizzo:</span>
+              <span class="info-value">{{ ordine.indirizzo }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Città:</span>
+              <span class="info-value">{{ ordine.citta }} ({{ ordine.provincia }}) {{ ordine.cap }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Telefono:</span>
+              <span class="info-value">{{ ordine.telefono }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Order Items -->
+      <div class="order-items-section">
+        <h3>🛒 Prodotti Ordinati</h3>
+        <div class="items-list">
+          {% for elemento in elementi_ordine %}
+          <div class="item-row">
+            <div class="item-info">
+              <span class="item-name">{{ elemento.prodotto.nome }}</span>
+              <span class="item-details">{{ elemento.prodotto.marca }} - {{ elemento.prodotto.peso }}</span>
+            </div>
+            <div class="item-quantity">x{{ elemento.quantita }}</div>
+            <div class="item-price">€{{ elemento.prezzo_totale|floatformat:2 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <!-- Order Totals -->
+        <div class="order-totals">
+          <div class="total-row">
+            <span class="total-label">Subtotale:</span>
+            <span class="total-value">€{{ ordine.subtotale|floatformat:2 }}</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">Spese di spedizione:</span>
+            <span class="total-value">€{{ ordine.spese_spedizione|floatformat:2 }}</span>
+          </div>
+          <div class="total-row final">
+            <span class="total-label">Totale Finale:</span>
+            <span class="total-value">€{{ ordine.totale_finale|floatformat:2 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Next Steps -->
+    <div class="next-steps-card">
+      <h3>📧 Prossimi Passi</h3>
+      <div class="steps-list">
+        <div class="step-item">
+          <span class="step-icon">✉️</span>
+          <span class="step-text">Riceverai una email di conferma all'indirizzo {{ ordine.email }}</span>
+        </div>
+        <div class="step-item">
+          <span class="step-icon">📱</span>
+          <span class="step-text">Ti aggiorneremo via SMS sui progressi della consegna</span>
+        </div>
+        <div class="step-item">
+          <span class="step-icon">🚚</span>
+          <span class="step-text">La consegna avverrà entro 24-48 ore lavorative</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="success-actions">
+      <a href="{% url 'utenti:profile' %}" class="btn-action primary">
+        <span class="btn-icon">👤</span>
+        Visualizza i Tuoi Ordini
+      </a>
+      <a href="{% url 'prodotti:list' %}" class="btn-action secondary">
+        <span class="btn-icon">🛒</span>
+        Continua a Fare Shopping
+      </a>
+      <a href="{% url 'home' %}" class="btn-action tertiary">
+        <span class="btn-icon">🏠</span>
+        Torna alla Home
+      </a>
+    </div>
+    
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/order-success.css' %}">
+{% endblock %}

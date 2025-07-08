@@ -48,8 +48,13 @@ class Carrello(models.Model):
         return sum(item.quantita for item in self.elementi.all())
     
     @property
+    def numero_prodotti(self):
+        """Restituisce il numero totale di prodotti nel carrello (somma delle quantità)"""
+        return sum(elemento.quantita for elemento in self.elementi.all())
+    
+    @property
     def numero_prodotti_unici(self):
-        """Restituisce il numero di prodotti diversi nel carrello"""
+        """Restituisce il numero di prodotti unici nel carrello"""
         return self.elementi.count()
     
     @property
@@ -194,5 +199,126 @@ class ElementoCarrello(models.Model):
             self.prezzo_unitario = self.prodotto.prezzo
             self.sconto_applicato = self.prodotto.sconto
         super().save(*args, **kwargs)
+
+
+class Ordine(models.Model):
+    """
+    Modello per gli ordini effettuati
+    """
+    STATO_CHOICES = [
+        ('confermato', 'Confermato'),
+        ('in_preparazione', 'In Preparazione'),
+        ('spedito', 'Spedito'),
+        ('consegnato', 'Consegnato'),
+        ('annullato', 'Annullato'),
+    ]
+    
+    utente = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='ordini',
+        help_text="Utente che ha effettuato l'ordine"
+    )
+    
+    negozio = models.ForeignKey(
+        'negozi.Negozio',
+        on_delete=models.SET_NULL,
+        null=True,
+        help_text="Negozio dal quale è stato effettuato l'ordine"
+    )
+    
+    # Dati di fatturazione
+    nome_completo = models.CharField(max_length=200, help_text="Nome e cognome")
+    email = models.EmailField(help_text="Email per conferma ordine")
+    telefono = models.CharField(max_length=20, help_text="Numero di telefono")
+    
+    # Indirizzo di consegna
+    indirizzo = models.CharField(max_length=300, help_text="Indirizzo di consegna")
+    citta = models.CharField(max_length=100, help_text="Città")
+    cap = models.CharField(max_length=10, help_text="Codice postale")
+    provincia = models.CharField(max_length=2, help_text="Provincia")
+    
+    # Note aggiuntive
+    note_consegna = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Note per la consegna"
+    )
+    
+    # Totali
+    subtotale = models.DecimalField(max_digits=8, decimal_places=2, help_text="Subtotale prodotti")
+    spese_spedizione = models.DecimalField(max_digits=8, decimal_places=2, help_text="Costo spedizione")
+    totale_finale = models.DecimalField(max_digits=8, decimal_places=2, help_text="Totale finale")
+    
+    # Stato e date
+    stato = models.CharField(max_length=20, choices=STATO_CHOICES, default='confermato')
+    data_ordine = models.DateTimeField(auto_now_add=True)
+    data_modifica = models.DateTimeField(auto_now=True)
+    
+    # Codice ordine univoco
+    codice_ordine = models.CharField(max_length=20, unique=True, help_text="Codice univoco ordine")
+    
+    class Meta:
+        verbose_name = "Ordine"
+        verbose_name_plural = "Ordini"
+        ordering = ['-data_ordine']
+    
+    def __str__(self):
+        return f"Ordine #{self.codice_ordine} - {self.utente.username}"
+    
+    def save(self, *args, **kwargs):
+        """Override del save per generare codice ordine"""
+        if not self.codice_ordine:
+            import random
+            import string
+            self.codice_ordine = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+        super().save(*args, **kwargs)
+
+
+class ElementoOrdine(models.Model):
+    """
+    Elementi (prodotti) all'interno di un ordine
+    """
+    ordine = models.ForeignKey(
+        Ordine,
+        on_delete=models.CASCADE,
+        related_name='elementi',
+        help_text="Ordine di appartenenza"
+    )
+    
+    prodotto = models.ForeignKey(
+        Prodotto,
+        on_delete=models.CASCADE,
+        help_text="Prodotto ordinato"
+    )
+    
+    quantita = models.PositiveIntegerField(help_text="Quantità ordinata")
+    
+    # Prezzo al momento dell'ordine (storicizzato)
+    prezzo_unitario = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        help_text="Prezzo unitario al momento dell'ordine"
+    )
+    
+    sconto_applicato = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Sconto applicato al momento dell'ordine"
+    )
+    
+    class Meta:
+        verbose_name = "Elemento Ordine"
+        verbose_name_plural = "Elementi Ordine"
+    
+    def __str__(self):
+        return f"{self.prodotto.nome} x{self.quantita} - Ordine #{self.ordine.codice_ordine}"
+    
+    @property
+    def prezzo_totale(self):
+        """Calcola il prezzo totale per questo elemento"""
+        prezzo_scontato = self.prezzo_unitario * (100 - self.sconto_applicato) / 100
+        return prezzo_scontato * self.quantita
 
 

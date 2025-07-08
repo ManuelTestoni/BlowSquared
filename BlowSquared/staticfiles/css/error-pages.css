@@ -1,0 +1,353 @@
+/* Error Pages Styles */
+
+.error-section {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--light-color) 0%, #f0f8f0 100%);
+  padding: 6rem 0 4rem;
+  display: flex;
+  align-items: center;
+}
+
+.error-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.error-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+/* Director Section */
+.error-image-section {
+  position: relative;
+  text-align: center;
+}
+
+.director-container {
+  position: relative;
+  display: inline-block;
+}
+
+.director-image {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 8px solid white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.director-image:hover {
+  transform: scale(1.05);
+}
+
+.speech-bubble {
+  position: absolute;
+  top: -20px;
+  right: -60px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 20px;
+  border: 3px solid var(--primary-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 250px;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--primary-color);
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.bubble-arrow {
+  position: absolute;
+  bottom: -15px;
+  left: 50px;
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 15px solid var(--primary-color);
+}
+
+.bubble-arrow::before {
+  content: '';
+  position: absolute;
+  top: -18px;
+  left: -12px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 12px solid white;
+}
+
+/* Floating Decorations */
+.error-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.floating-cart, .floating-product, .floating-star {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.6;
+}
+
+.floating-cart {
+  top: 10%;
+  left: 10%;
+}
+
+.floating-product {
+  top: 60%;
+  right: 10%;
+}
+
+.floating-star {
+  bottom: 20%;
+  left: 20%;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Error Content */
+.error-content-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.error-header {
+  text-align: center;
+}
+
+.error-code {
+  font-family: var(--font-primary);
+  font-size: 8rem;
+  font-weight: 900;
+  color: var(--primary-color);
+  line-height: 1;
+  margin-bottom: 1rem;
+  text-shadow: 3px 3px 6px rgba(62, 116, 71, 0.2);
+}
+
+.error-title {
+  font-family: var(--font-primary);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.error-subtitle {
+  font-size: 1.2rem;
+  color: var(--dark-color);
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+/* Message Box */
+.message-box {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.message-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+}
+
+.message-content h3 {
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestions-list li {
+  padding: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--dark-color);
+}
+
+.suggestions-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--secondary-color);
+  font-weight: 700;
+}
+
+/* Action Buttons */
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary-404, .btn-secondary-404, .btn-tertiary-404 {
+  padding: 1rem 2rem;
+  border-radius: 15px;
+  text-decoration: none;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.9rem;
+}
+
+.btn-primary-404 {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+  box-shadow: 0 8px 25px rgba(62, 116, 71, 0.3);
+}
+
+.btn-secondary-404 {
+  background: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+.btn-tertiary-404 {
+  background: var(--secondary-color);
+  color: var(--primary-color);
+  border: 2px solid var(--secondary-color);
+}
+
+.btn-primary-404:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(62, 116, 71, 0.4);
+}
+
+.btn-secondary-404:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+}
+
+.btn-tertiary-404:hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-3px);
+}
+
+/* Help Card */
+.error-help {
+  margin-top: 2rem;
+}
+
+.help-card {
+  background: rgba(62, 116, 71, 0.1);
+  border-radius: 15px;
+  padding: 2rem;
+  text-align: center;
+  border: 1px solid rgba(62, 116, 71, 0.2);
+}
+
+.help-card h4 {
+  color: var(--primary-color);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.help-card p {
+  color: var(--dark-color);
+  margin-bottom: 1.5rem;
+}
+
+.contact-options {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  background: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  color: var(--primary-color);
+  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .error-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .error-code {
+    font-size: 5rem;
+  }
+  
+  .error-title {
+    font-size: 2rem;
+  }
+  
+  .director-image {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .speech-bubble {
+    position: static;
+    margin-top: 1rem;
+    max-width: none;
+  }
+  
+  .bubble-arrow {
+    display: none;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+  }
+  
+  .contact-options {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .message-box {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .floating-cart, .floating-product, .floating-star {
+    display: none;
+  }
+}

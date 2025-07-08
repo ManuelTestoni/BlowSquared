@@ -81,6 +81,9 @@ class ProfiloUtente(models.Model):
             citta__icontains=self.citta
         ).order_by('nome')
 
+# Alias per compatibilità
+Profilo = ProfiloUtente
+
 class ListaSpesa(models.Model):
     """Modello per le liste della spesa degli utenti"""
     
@@ -173,54 +176,31 @@ class ElementoLista(models.Model):
     
     lista = models.ForeignKey(
         ListaSpesa, 
-        on_delete=models.CASCADE, 
-        related_name='elementi',
-        help_text="Lista di appartenenza"
-    )
-    prodotto = models.ForeignKey(
-        Prodotto, 
         on_delete=models.CASCADE,
-        help_text="Prodotto da acquistare"
+        related_name='elementi'
     )
-    quantita = models.PositiveIntegerField(
-        default=1,
-        help_text="Quantità del prodotto da acquistare"
-    )
-    acquisito = models.BooleanField(
-        default=False,
-        help_text="Indica se il prodotto è già stato acquistato"
-    )
-    note = models.TextField(
-        blank=True, 
-        null=True,
-        help_text="Note aggiuntive per il prodotto (es: 'marca specifica', 'se in offerta')"
-    )
-    data_aggiunta = models.DateTimeField(
-        auto_now_add=True,
-        help_text="Data di aggiunta del prodotto alla lista"
-    )
-    priorita = models.IntegerField(
-        default=0,
-        choices=[
-            (0, 'Normale'),
-            (1, 'Alta'),
-            (2, 'Urgente')
-        ],
-        help_text="Priorità di acquisto del prodotto"
-    )
+    prodotto = models.ForeignKey('prodotti.Prodotto', on_delete=models.CASCADE)
+    quantita = models.PositiveIntegerField(default=1)
+    note = models.TextField(blank=True, null=True)
+    priorita = models.IntegerField(default=0, choices=[
+        (0, 'Normale'),
+        (1, 'Alta'),
+        (2, 'Urgente')
+    ])
+    data_aggiunta = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        verbose_name = "Elemento Lista"
-        verbose_name_plural = "Elementi Lista"
-        unique_together = ['lista', 'prodotto']  # Un prodotto può apparire solo una volta per lista
+        unique_together = ('lista', 'prodotto')
+        verbose_name = 'Elemento Lista'
+        verbose_name_plural = 'Elementi Lista'
         ordering = ['-priorita', 'data_aggiunta']
-        
+    
     def __str__(self):
         return f"{self.prodotto.nome} x{self.quantita} - {self.lista.nome}"
     
     @property
     def prezzo_totale(self):
-        """Calcola il prezzo totale per questo elemento (quantità * prezzo)"""
+        """Calcola il prezzo totale per questo elemento"""
         prezzo_unitario = self.prodotto.prezzo
         if self.prodotto.sconto > 0:
             prezzo_unitario = prezzo_unitario * (100 - self.prodotto.sconto) / 100
@@ -228,17 +208,22 @@ class ElementoLista(models.Model):
     
     @property
     def disponibile(self):
-        """Verifica se il prodotto è disponibile in quantità sufficiente"""
+        """Verifica se il prodotto è disponibile in magazzino"""
         return self.prodotto.stock >= self.quantita
+    
+    def get_priorita_display(self):
+        """Restituisce la descrizione della priorità"""
+        choices = dict(self._meta.get_field('priorita').choices)
+        return choices.get(self.priorita, 'Normale')
     
     def get_priorita_display_emoji(self):
         """Restituisce emoji per la priorità"""
         emoji_map = {
-            0: '🔹',  # Normale
-            1: '🟡',  # Alta
-            2: '🔴'   # Urgente
+            0: '📝',  # Normale
+            1: '⚠️',  # Alta
+            2: '🚨',  # Urgente
         }
-        return emoji_map.get(self.priorita, '🔹')
+        return emoji_map.get(self.priorita, '📝')
 
 
 class ListaCondivisa(models.Model):
@@ -275,6 +260,7 @@ class ListaCondivisa(models.Model):
         
     def __str__(self):
         return f"{self.lista.nome} condivisa con {self.utente_condiviso.username}"
+        return f"{self.lista.nome} condivisa con {self.utente_condiviso.username}"
         related_name='condivisioni'
 
     utente_condiviso = models.ForeignKey(
@@ -295,11 +281,3 @@ class ListaCondivisa(models.Model):
     data_condivisione = models.DateTimeField(
         auto_now_add=True
     )
-    
-    class Meta:
-        verbose_name = "Lista Condivisa"
-        verbose_name_plural = "Liste Condivise"
-        unique_together = ['lista', 'utente_condiviso']
-        
-    def __str__(self):
-        return f"{self.lista.nome} condivisa con {self.utente_condiviso.username}"

@@ -6,60 +6,50 @@
 {% block content %}
 <section class="create-list-section">
   <div class="create-list-container">
-    <div class="create-list-header">
-      <h1 class="create-title">Crea Nuova Lista della Spesa</h1>
-      <p class="create-subtitle">Organizza i tuoi prodotti preferiti</p>
+    <div class="page-header">
+      <h1 class="page-title">Crea Nuova Lista della Spesa</h1>
+      <p class="page-subtitle">Organizza i tuoi acquisti creando liste personalizzate</p>
     </div>
     
-    <form method="post" class="create-list-form" id="createListForm">
+    <form method="POST" class="create-list-form">
       {% csrf_token %}
       
-      <div class="form-section">
-        <h3 class="section-title">Informazioni Lista</h3>
-        
+      <div class="form-basic-info">
         <div class="form-group">
-          <label for="nome_lista" class="form-label">
-            <span class="label-icon">📝</span>
-            Nome Lista
-          </label>
+          <label for="nome_lista">Nome Lista *</label>
           <input type="text" id="nome_lista" name="nome_lista" required 
-                 placeholder="es. Spesa settimanale, Cena romantica..." 
-                 class="form-input">
+                 placeholder="Es. Spesa Settimanale, Lista per la Cena, etc.">
         </div>
         
         <div class="form-group">
-          <label for="descrizione" class="form-label">
-            <span class="label-icon">📄</span>
-            Descrizione (opzionale)
-          </label>
-          <textarea id="descrizione" name="descrizione" rows="3" 
-                    placeholder="Aggiungi una descrizione per la tua lista..."
-                    class="form-textarea"></textarea>
+          <label for="descrizione">Descrizione (opzionale)</label>
+          <textarea id="descrizione" name="descrizione" rows="3"
+                    placeholder="Aggiungi una descrizione per ricordare l'occasione..."></textarea>
         </div>
       </div>
       
-      <div class="form-section">
-        <h3 class="section-title">Aggiungi Prodotti</h3>
+      <div class="form-products-section">
+        <h3>Aggiungi Prodotti alla Lista</h3>
         
         <div class="product-search">
-          <input type="text" id="searchProducts" placeholder="Cerca prodotti..." class="search-input">
-          <div id="searchResults" class="search-results"></div>
+          <input type="text" id="search-products" placeholder="Cerca prodotti da aggiungere...">
+          <div id="search-results" class="search-results"></div>
         </div>
         
-        <div id="selectedProducts" class="selected-products">
-          <div class="no-products">
-            <span class="no-products-icon">🛒</span>
-            <p>Nessun prodotto selezionato. Usa la ricerca per aggiungere prodotti.</p>
-          </div>
+        <div id="selected-products" class="selected-products">
+          <p class="empty-message">Nessun prodotto aggiunto alla lista</p>
         </div>
       </div>
       
       <div class="form-actions">
-        <a href="{% url 'utenti:profile' %}" class="btn-cancel">Annulla</a>
-        <button type="submit" class="btn-submit">
-          <span class="btn-icon">✨</span>
+        <button type="submit" class="btn-create">
+          <span class="btn-icon">✅</span>
           Crea Lista
         </button>
+        <a href="{% url 'utenti:profile' %}" class="btn-cancel">
+          <span class="btn-icon">❌</span>
+          Annulla
+        </a>
       </div>
     </form>
   </div>
@@ -67,9 +57,360 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/liste-spesa.css' %}">
+<style>
+.create-list-section {
+  padding: 4rem 0;
+  background: #f8f9fa;
+  min-height: 80vh;
+}
+
+.create-list-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.page-subtitle {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.create-list-form {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-basic-info {
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.form-products-section h3 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+.product-search {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+#search-products {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+
+.search-result {
+  padding: 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+.search-result:hover {
+  background: #f8f9fa;
+}
+
+.search-result:last-child {
+  border-bottom: none;
+}
+
+.selected-products {
+  min-height: 100px;
+  border: 2px dashed #dee2e6;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.empty-message {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+}
+
+.selected-product {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.product-info h4 {
+  margin: 0 0 0.2rem 0;
+  color: var(--primary-color);
+}
+
+.product-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.product-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-control label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.quantity-input {
+  width: 60px;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.product-remove {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e9ecef;
+}
+
+.btn-create,
+.btn-cancel {
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-create {
+  background: var(--primary-color);
+  color: white;
+}
+
+.btn-cancel {
+  background: #e9ecef;
+  color: #666;
+}
+
+.btn-create:hover {
+  background: var(--accent-color);
+}
+
+.btn-cancel:hover {
+  background: #dee2e6;
+}
+</style>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/crea-lista.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-products');
+    const searchResults = document.getElementById('search-results');
+    const selectedProducts = document.getElementById('selected-products');
+    let selectedProductsData = [];
+    
+    // Ricerca prodotti
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        fetch(`/utenti/ajax/cerca-prodotti/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            showSearchResults(data.prodotti);
+        })
+        .catch(error => {
+            console.error('Errore ricerca:', error);
+        });
+    });
+    
+    function showSearchResults(prodotti) {
+        if (prodotti.length === 0) {
+            searchResults.style.display = 'none';
+            return;
+        }
+        
+        const resultsHtml = prodotti.map(prodotto => `
+            <div class="search-result" onclick="addProduct(${prodotto.id}, '${prodotto.nome.replace(/'/g, "\\'")}', '${prodotto.marca.replace(/'/g, "\\'")}', ${prodotto.prezzo})">
+                <h4>${prodotto.nome}</h4>
+                <p>${prodotto.marca} - €${prodotto.prezzo}</p>
+            </div>
+        `).join('');
+        
+        searchResults.innerHTML = resultsHtml;
+        searchResults.style.display = 'block';
+    }
+    
+    window.addProduct = function(id, nome, marca, prezzo) {
+        // Verifica se già aggiunto
+        if (selectedProductsData.find(p => p.id === id)) {
+            alert('Prodotto già aggiunto alla lista');
+            return;
+        }
+        
+        selectedProductsData.push({ 
+            id, 
+            nome, 
+            marca, 
+            prezzo, 
+            quantita: 1
+        });
+        updateSelectedProducts();
+        
+        // Nascondi risultati e pulisci ricerca
+        searchResults.style.display = 'none';
+        searchInput.value = '';
+    };
+    
+    window.removeProduct = function(id) {
+        selectedProductsData = selectedProductsData.filter(p => p.id !== id);
+        updateSelectedProducts();
+    };
+    
+    window.updateQuantity = function(id, newQuantity) {
+        const product = selectedProductsData.find(p => p.id === id);
+        if (product) {
+            product.quantita = Math.max(1, parseInt(newQuantity) || 1);
+            updateSelectedProducts();
+        }
+    };
+    
+    function updateSelectedProducts() {
+        if (selectedProductsData.length === 0) {
+            selectedProducts.innerHTML = '<p class="empty-message">Nessun prodotto aggiunto alla lista</p>';
+        } else {
+            const productsHtml = selectedProductsData.map(prodotto => `
+                <div class="selected-product">
+                    <div class="product-info">
+                        <h4>${prodotto.nome}</h4>
+                        <p>${prodotto.marca} - €${prodotto.prezzo}</p>
+                    </div>
+                    <div class="product-controls">
+                        <div class="quantity-control">
+                            <label>Qty:</label>
+                            <input type="number" 
+                                   class="quantity-input" 
+                                   value="${prodotto.quantita}" 
+                                   min="1" 
+                                   max="99"
+                                   onchange="updateQuantity(${prodotto.id}, this.value)">
+                        </div>
+                        <button type="button" class="product-remove" onclick="removeProduct(${prodotto.id})" title="Rimuovi">×</button>
+                    </div>
+                    <input type="hidden" name="prodotti" value="${prodotto.id}">
+                    <input type="hidden" name="quantita" value="${prodotto.quantita}">
+                    <input type="hidden" name="note" value="">
+                    <input type="hidden" name="priorita" value="0">
+                </div>
+            `).join('');
+            
+            selectedProducts.innerHTML = productsHtml;
+        }
+    }
+    
+    // Nascondi risultati cliccando fuori
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.product-search')) {
+            searchResults.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}

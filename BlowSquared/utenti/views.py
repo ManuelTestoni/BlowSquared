@@ -8,6 +8,8 @@ from django.http import JsonResponse
 from django.db.models import Q
 from .forms import CustomUserCreationForm
 from prodotti.models import Prodotto
+from carrello.models import Ordine, Carrello, ElementoCarrello
+from django.db.models import Sum, Count
 
 def index(request):
     return render(request, 'utenti/index.html')
@@ -66,40 +68,44 @@ def logout_view(request):
     return render(request, 'utenti/logout_confirm.html')
 
 @login_required
-def profile_view(request):
-    """Vista per il profilo utente completo"""
+def profile(request):
+    """Vista per il profilo utente"""
+    try:
+        profilo = request.user.profilo
+    except:
+        profilo = None
+    
+    # Calcola statistiche ordini
+    ordini_stats = Ordine.objects.filter(utente=request.user).aggregate(
+        totali=Count('id'),
+        importo=Sum('totale_finale')
+    )
+    
+    # Gestisci le liste della spesa se esistono
     try:
         from .models import ListaSpesa
-        
-        # Dati reali dalle liste della spesa
-        tutte_liste = ListaSpesa.objects.filter(utente=request.user)
-        liste_spesa = tutte_liste.order_by('-data_modifica')  # Rimuovo lo slice per ora
-        ordini_recenti = []  # Qui andranno gli ordini dal database quando implementato
-        
-        # Statistiche utente reali
-        stats = {
-            'ordini_totali': 0,  # Da implementare con gli ordini
-            'importo_totale': 0.00,  # Da implementare con gli ordini
-            'prodotti_preferiti': 0,  # Da implementare
-            'liste_attive': tutte_liste.filter(completata=False).count()
-        }
-    except Exception as e:
-        # Fallback se le tabelle non esistono ancora
-        print(f"Errore nel caricamento liste: {e}")  # Debug
+        liste_attive_count = ListaSpesa.objects.filter(utente=request.user, completata=False).count()
+        liste_spesa = ListaSpesa.objects.filter(utente=request.user).order_by('-data_modifica')
+    except (ImportError, AttributeError):
+        # Il modello ListaSpesa non esiste ancora
+        liste_attive_count = 0
         liste_spesa = []
-        ordini_recenti = []
-        stats = {
-            'ordini_totali': 0,
-            'importo_totale': 0.00,
-            'prodotti_preferiti': 0,
-            'liste_attive': 0
-        }
+    
+    stats = {
+        'ordini_totali': ordini_stats['totali'] or 0,
+        'importo_totale': ordini_stats['importo'] or 0,
+        'prodotti_preferiti': 0,  # TODO: implementare quando aggiungi i preferiti
+        'liste_attive': liste_attive_count,
+    }
+    
+    # Recupera gli ordini recenti (ultimi 10)
+    ordini_recenti = Ordine.objects.filter(utente=request.user).order_by('-data_ordine')[:10]
     
     context = {
-        'user': request.user,
-        'ordini_recenti': ordini_recenti,
+        'profilo': profilo,
+        'stats': stats,
         'liste_spesa': liste_spesa,
-        'stats': stats
+        'ordini_recenti': ordini_recenti,
     }
     
     return render(request, 'utenti/profile.html', context)
@@ -320,15 +326,25 @@ def elimina_lista_view(request, lista_id):
     lista = get_object_or_404(ListaSpesa, id=lista_id, utente=request.user)
     nome_lista = lista.nome
     
-    if request.method == 'POST':
-        lista.delete()
-        messages.success(request, f'Lista "{nome_lista}" eliminata con successo!')
-        return redirect('utenti:profile')
-    
-    # Se è una richiesta AJAX
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        lista.delete()
-        return JsonResponse({'success': True, 'message': f'Lista "{nome_lista}" eliminata!'})
+    # Gestisci sia GET che POST per eliminazione diretta
+    if request.method in ['GET', 'POST']:
+        try:
+            lista.delete()
+            
+            # Se è una richiesta AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': f'Lista "{nome_lista}" eliminata!'})
+            
+            # Se è una richiesta normale
+            messages.success(request, f'Lista "{nome_lista}" eliminata con successo!')
+            return redirect('utenti:profile')
+            
+        except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': f'Errore durante l\'eliminazione.'})
+                
+            messages.error(request, f'Errore durante l\'eliminazione della lista.')
+            return redirect('utenti:profile')
     
     return redirect('utenti:profile')
 
@@ -368,3 +384,151 @@ def visualizza_lista_popup(request, lista_id):
         },
         'elementi': elementi_data
     })
+
+@login_required
+def aggiungi_lista_al_carrello(request, lista_id):
+    """Vista per aggiungere tutti i prodotti di una lista al carrello"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Metodo non consentito'})
+    
+    try:
+        from .models import ListaSpesa, ElementoLista
+        
+        # Verifica che l'utente abbia selezionato un negozio
+        try:
+            if not request.user.profilo.negozio_preferito:
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Seleziona prima un negozio per procedere con l\'ordine.'
+                })
+        except:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Completa il tuo profilo selezionando un negozio.'
+            })
+        
+        # Recupera la lista specifica
+        lista_id_int = int(lista_id)
+        lista = get_object_or_404(
+            ListaSpesa.objects.filter(
+                id=lista_id_int,
+                utente=request.user
+            )
+        )
+        
+        # Query per elementi della lista specifica
+        elementi_lista = ElementoLista.objects.filter(
+            lista__id=lista_id_int,
+            lista__utente=request.user,
+            lista=lista
+        ).select_related('prodotto', 'lista')
+        
+        if not elementi_lista.exists():
+            return JsonResponse({
+                'success': False, 
+                'message': f'La lista "{lista.nome}" è vuota.'
+            })
+        
+        # Ottieni o crea il carrello
+        carrello = Carrello.get_or_create_for_user(request.user)
+        
+        # Pulisci il carrello esistente
+        carrello.elementi.all().delete()
+        
+        # Contatori per il riepilogo
+        prodotti_aggiunti = 0
+        prodotti_non_disponibili = 0
+        
+        # Aggiungi elementi della lista al carrello
+        for elemento in elementi_lista:
+            prodotto = elemento.prodotto
+            quantita_lista = elemento.quantita
+            
+            # Verifica disponibilità
+            if prodotto.stock < quantita_lista:
+                prodotti_non_disponibili += 1
+                continue
+            
+            # Aggiungi al carrello pulito
+            ElementoCarrello.objects.create(
+                carrello=carrello,
+                prodotto=prodotto,
+                quantita=quantita_lista,
+                prezzo_unitario=prodotto.prezzo,
+                sconto_applicato=prodotto.sconto,
+            )
+            prodotti_aggiunti += 1
+        
+        # Verifica risultati
+        if prodotti_aggiunti == 0:
+            if prodotti_non_disponibili > 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Nessun prodotto disponibile dalla lista.'
+                })
+            else:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Lista già presente nel carrello con le quantità corrette'
+                })
+        
+        # Conteggio totale carrello
+        try:
+            carrello_count = carrello.numero_prodotti
+        except AttributeError:
+            carrello_count = sum(elemento.quantita for elemento in carrello.elementi.all())
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Lista correttamente aggiunta al carrello',
+            'carrello_count': carrello_count,
+            'dettagli': {
+                'prodotti_aggiunti': prodotti_aggiunti,
+                'prodotti_non_disponibili': prodotti_non_disponibili,
+                'totale_carrello': float(carrello.totale_finale)
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'Errore durante l\'aggiunta al carrello. Riprova.'
+        })
+
+@login_required
+def visualizza_lista_popup(request, lista_id):
+    """Vista AJAX per visualizzare lista in popup"""
+    from .models import ListaSpesa
+    
+    lista = get_object_or_404(ListaSpesa, id=lista_id, utente=request.user)
+    elementi = lista.elementi.all().order_by('-priorita', 'data_aggiunta')
+    
+    elementi_data = []
+    for elemento in elementi:
+        elementi_data.append({
+            'nome': elemento.prodotto.nome,
+            'marca': elemento.prodotto.marca,
+            'quantita': elemento.quantita,
+            'prezzo_unitario': float(elemento.prodotto.prezzo),
+            'prezzo_totale': float(elemento.prezzo_totale),
+            'priorita': elemento.get_priorita_display(),
+            'priorita_emoji': elemento.get_priorita_display_emoji(),
+            'note': elemento.note or '',
+            'disponibile': elemento.disponibile,
+            'categoria': elemento.prodotto.get_categoria_display()
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'lista': {
+            'nome': lista.nome,
+            'descrizione': lista.descrizione or '',
+            'numero_prodotti': lista.numero_prodotti,
+            'quantita_totale': lista.quantita_totale,
+            'prezzo_stimato': float(lista.prezzo_stimato),
+            'data_creazione': lista.data_creazione.strftime('%d/%m/%Y'),
+            'completata': lista.completata
+        },
+        'elementi': elementi_data
+    })
+

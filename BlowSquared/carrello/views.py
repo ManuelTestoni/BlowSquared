@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from .models import Carrello, ElementoCarrello
+from .models import Carrello, ElementoCarrello, Ordine, ElementoOrdine
 from prodotti.models import Prodotto
 
 @login_required
@@ -274,6 +274,11 @@ def api_cart_count(request):
 def checkout(request):
     """Vista per la pagina di checkout"""
     
+    # Debug del metodo
+    print(f"Checkout method: {request.method}")
+    if request.method == 'POST':
+        print(f"POST data: {dict(request.POST)}")
+    
     # Verifica che l'utente abbia selezionato un negozio
     try:
         profilo = request.user.profilo
@@ -318,15 +323,8 @@ def checkout(request):
     
     # Gestione del form POST (quando viene completato il checkout)
     if request.method == 'POST':
-        # Qui andrà la logica per processare l'ordine
-        # Per ora simuliamo il completamento
-        messages.success(request, 'Ordine completato con successo! Riceverai una email di conferma a breve.')
-        
-        # Svuota il carrello dopo l'ordine
-        carrello.svuota_carrello()
-        
-        # Reindirizza a una pagina di conferma (per ora torna alla home)
-        return redirect('home')
+        print("Processing order...")
+        return process_order(request, carrello, elementi_carrello, subtotale, costo_spedizione, totale_finale)
     
     context = {
         'carrello': carrello,
@@ -335,6 +333,124 @@ def checkout(request):
         'costo_spedizione': costo_spedizione,
         'totale_finale': totale_finale,
         'negozio': profilo.negozio_preferito,
+        'user': request.user,
     }
     
     return render(request, 'carrello/checkout.html', context)
+
+def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizione, totale_finale):
+    """Processa l'ordine dal checkout"""
+    
+    # Validazione campi obbligatori
+    required_fields = {
+        'nome_completo': 'Nome completo',
+        'email': 'Email',
+        'telefono': 'Telefono',
+        'indirizzo': 'Indirizzo',
+        'citta': 'Città',
+        'cap': 'CAP',
+        'provincia': 'Provincia',
+    }
+    
+    errors = []
+    for field, label in required_fields.items():
+        if not request.POST.get(field, '').strip():
+            errors.append(f'Il campo {label} è obbligatorio')
+    
+    # Validazione email
+    import re
+    email = request.POST.get('email', '').strip()
+    if email and not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
+        errors.append('Inserisci un indirizzo email valido')
+    
+    # Validazione CAP
+    cap = request.POST.get('cap', '').strip()
+    if cap and not re.match(r'^\d{5}$', cap):
+        errors.append('Il CAP deve essere di 5 cifre')
+    
+    # Validazione provincia
+    provincia = request.POST.get('provincia', '').strip().upper()
+    if provincia and len(provincia) != 2:
+        errors.append('La provincia deve essere di 2 lettere (es. MO, BO)')
+    
+    # Validazione campi di fatturazione se diversi
+    if request.POST.get('different_billing'):
+        billing_fields = {
+            'indirizzo_fatturazione': 'Indirizzo fatturazione',
+            'citta_fatturazione': 'Città fatturazione', 
+            'cap_fatturazione': 'CAP fatturazione',
+            'provincia_fatturazione': 'Provincia fatturazione',
+        }
+        
+        for field, label in billing_fields.items():
+            if not request.POST.get(field, '').strip():
+                errors.append(f'Il campo {label} è obbligatorio')
+    
+    if errors:
+        for error in errors:
+            messages.error(request, error)
+        return redirect('carrello:checkout')
+    
+    try:
+        # Crea l'ordine
+        ordine = Ordine.objects.create(
+            utente=request.user,
+            negozio=request.user.profilo.negozio_preferito,
+            nome_completo=request.POST.get('nome_completo').strip(),
+            email=email,
+            telefono=request.POST.get('telefono').strip(),
+            indirizzo=request.POST.get('indirizzo').strip(),
+            citta=request.POST.get('citta').strip(),
+            cap=cap,
+            provincia=provincia,
+            note_consegna=request.POST.get('note_consegna', '').strip(),
+            subtotale=subtotale,
+            spese_spedizione=costo_spedizione,
+            totale_finale=totale_finale,
+        )
+        
+        # Crea gli elementi dell'ordine
+        for elemento in elementi_carrello:
+            ElementoOrdine.objects.create(
+                ordine=ordine,
+                prodotto=elemento.prodotto,
+                quantita=elemento.quantita,
+                prezzo_unitario=elemento.prezzo_unitario,
+                sconto_applicato=elemento.sconto_applicato,
+            )
+        
+        # Svuota il carrello dopo l'ordine
+        carrello.svuota_carrello()
+        
+        # Messaggio di successo
+        messages.success(request, f'Ordine #{ordine.codice_ordine} creato con successo!')
+        
+        # Reindirizza alla pagina di conferma con il codice ordine
+        return redirect('carrello:ordine_completato', codice_ordine=ordine.codice_ordine)
+        
+    except Exception as e:
+        print(f"Errore creazione ordine: {e}")  # Debug
+        messages.error(request, f'Errore durante la creazione dell\'ordine. Riprova.')
+        return redirect('carrello:checkout')
+
+@login_required
+def ordine_completato(request, codice_ordine):
+    """Vista per la conferma ordine completato"""
+    try:
+        ordine = Ordine.objects.get(
+            codice_ordine=codice_ordine,
+            utente=request.user
+        )
+        
+        elementi_ordine = ElementoOrdine.objects.filter(ordine=ordine).select_related('prodotto')
+        
+        context = {
+            'ordine': ordine,
+            'elementi_ordine': elementi_ordine,
+        }
+        
+        return render(request, 'carrello/ordine_completato.html', context)
+        
+    except Ordine.DoesNotExist:
+        messages.error(request, 'Ordine non trovato')
+        return redirect('home')
