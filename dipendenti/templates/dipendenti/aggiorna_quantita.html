@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Aggiorna Quantità{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
+{% endblock %}
+{% block content %}
+<section class="form-section">
+  <div class="form-container">
+    <h2>Aggiorna Quantità Prodotto</h2>
+    <form method="post" class="update-qty-form">
+      {% csrf_token %}
+      <div class="form-group">
+        <label>Prodotto:</label>
+        <span>{{ prodotto.nome }}</span>
+      </div>
+      <div class="form-group">
+        <label for="quantita">Nuova Quantità:</label>
+        <input type="number" name="quantita" id="quantita" value="{{ prodotto.stock }}" min="0" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-success">Aggiorna</button>
+      <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">Annulla</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

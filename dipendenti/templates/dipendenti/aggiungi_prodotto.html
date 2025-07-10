@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Aggiungi Prodotto{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
+{% endblock %}
+{% block content %}
+<section class="form-section">
+  <div class="form-container">
+    <h2>Aggiungi Nuovo Prodotto</h2>
+    <form method="post" enctype="multipart/form-data" class="product-form">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-success">Salva Prodotto</button>
+      <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">Annulla</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Dipendente{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
+{% endblock %}
+{% block content %}
+<section class="dashboard-section">
+  <div class="dashboard-header">
+    <h1>Gestione Prodotti - {{ negozio.nome }}</h1>
+    <a href="{% url 'dipendenti:aggiungi_prodotto' %}" class="btn btn-primary">Aggiungi Nuovo Prodotto</a>
+  </div>
+  <table class="table table-striped dipendenti-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Marca</th>
+        <th>Categoria</th>
+        <th>Prezzo</th>
+        <th>Sconto</th>
+        <th>Disponibilità</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for prodotto in prodotti %}
+      <tr>
+        <td>{{ prodotto.nome }}</td>
+        <td>{{ prodotto.marca }}</td>
+        <td>{{ prodotto.get_categoria_display }}</td>
+        <td>€{{ prodotto.prezzo|floatformat:2 }}</td>
+        <td>{% if prodotto.sconto %}-{{ prodotto.sconto }}%{% else %}-{% endif %}</td>
+        <td>{{ prodotto.stock }}</td>
+        <td>
+          <a href="{% url 'dipendenti:aggiorna_quantita' prodotto.id %}" class="btn btn-sm btn-outline-primary">Aggiorna Q.tà</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">Nessun prodotto presente.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
