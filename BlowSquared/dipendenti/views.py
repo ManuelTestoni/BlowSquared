@@ -50,16 +50,95 @@ def aggiungi_prodotto(request):
 @login_required
 def aggiorna_quantita(request, prodotto_id):
     dipendente = get_object_or_404(Dipendente, user=request.user)
-    # Verifica che il prodotto appartenga al negozio del dipendente
-    prodotto = get_object_or_404(Prodotto, id=prodotto_id, negozio=dipendente.negozio)
+    
+    # OPZIONE 1: Query separata più leggibile
+    prodotti_accessibili = Prodotto.objects.filter(
+        models.Q(negozio=dipendente.negozio) | models.Q(negozio__isnull=True)
+    )
+    prodotto = get_object_or_404(prodotti_accessibili, id=prodotto_id)
     
     if request.method == 'POST':
-        quantita = int(request.POST.get('quantita', prodotto.stock))
-        prodotto.stock = quantita
-        prodotto.save()
-        messages.success(request, f'Quantità aggiornata per "{prodotto.nome}": {quantita} pezzi disponibili')
-        return redirect('dipendenti:dashboard')
-    return render(request, 'dipendenti/aggiorna_quantita.html', {'prodotto': prodotto, 'negozio': dipendente.negozio})
+        try:
+            # Ottieni il tipo di operazione e la quantità
+            operazione = request.POST.get('operazione')  # 'aumenta' o 'diminuisci' o 'imposta'
+            quantita_input = request.POST.get('quantita', 0)
+            
+            try:
+                quantita = int(quantita_input)
+            except ValueError:
+                messages.error(request, 'Quantità non valida. Inserisci un numero.')
+                return render(request, 'dipendenti/aggiorna_quantita.html', {
+                    'prodotto': prodotto, 
+                    'negozio': dipendente.negozio
+                })
+            
+            # Controlli di validazione
+            if quantita < 0:
+                messages.error(request, 'La quantità non può essere negativa.')
+                return render(request, 'dipendenti/aggiorna_quantita.html', {
+                    'prodotto': prodotto, 
+                    'negozio': dipendente.negozio
+                })
+            
+            if quantita > 100:
+                messages.error(request, 'Non è possibile aggiungere più di 100 prodotti alla volta.')
+                return render(request, 'dipendenti/aggiorna_quantita.html', {
+                    'prodotto': prodotto, 
+                    'negozio': dipendente.negozio
+                })
+            
+            # Calcola la nuova quantità basata sull'operazione
+            stock_attuale = prodotto.stock
+            
+            if operazione == 'aumenta':
+                nuova_quantita = stock_attuale + quantita
+            elif operazione == 'diminuisci':
+                nuova_quantita = stock_attuale - quantita
+                if nuova_quantita < 0:
+                    messages.error(request, f'Non puoi rimuovere {quantita} prodotti. Disponibili solo {stock_attuale}.')
+                    return render(request, 'dipendenti/aggiorna_quantita.html', {
+                        'prodotto': prodotto, 
+                        'negozio': dipendente.negozio
+                    })
+            elif operazione == 'imposta':
+                nuova_quantita = quantita
+            else:
+                messages.error(request, 'Operazione non valida.')
+                return render(request, 'dipendenti/aggiorna_quantita.html', {
+                    'prodotto': prodotto, 
+                    'negozio': dipendente.negozio
+                })
+            
+            # Controllo finale sulla quantità massima
+            if nuova_quantita > 9999:
+                messages.error(request, 'La quantità massima consentita è 9999.')
+                return render(request, 'dipendenti/aggiorna_quantita.html', {
+                    'prodotto': prodotto, 
+                    'negozio': dipendente.negozio
+                })
+            
+            # Aggiorna il database
+            prodotto.stock = nuova_quantita
+            prodotto.save(update_fields=['stock'])
+            
+            # Messaggio di successo personalizzato
+            if operazione == 'aumenta':
+                action_msg = f'Aggiunti {quantita} prodotti'
+            elif operazione == 'diminuisci':
+                action_msg = f'Rimossi {quantita} prodotti'
+            else:
+                action_msg = f'Quantità impostata a {quantita}'
+                
+            messages.success(request, f'{action_msg}. Stock attuale: {nuova_quantita} pezzi per "{prodotto.nome}"')
+            return redirect('dipendenti:dashboard')
+            
+        except Exception as e:
+            messages.error(request, f'Errore durante l\'aggiornamento: {str(e)}')
+            
+    return render(request, 'dipendenti/aggiorna_quantita.html', {
+        'prodotto': prodotto, 
+        'negozio': dipendente.negozio
+    })
 
 def login_dipendente(request):
     if request.user.is_authenticated and hasattr(request.user, 'dipendente'):
@@ -95,9 +174,7 @@ def login_dipendente(request):
                 return redirect('dipendenti:dashboard')
             else:
                 error = "Questo utente non è un dipendente."
-                print("Utente non è un dipendente")  # Debug
-        else:
-            error = "Credenziali non valide."
             print("Credenziali non valide")  # Debug
     
     return render(request, 'dipendenti/login.html', {'error': error})
+       

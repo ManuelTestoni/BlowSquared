@@ -1,25 +1,743 @@
 {% extends 'base.html' %}
-{% block title %}Aggiorna Quantità{% endblock %}
+{% load static %}
+{% block title %}Aggiorna Quantità - {{ prodotto.nome }}{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
 {% endblock %}
 {% block content %}
 <section class="form-section">
   <div class="form-container">
-    <h2>Aggiorna Quantità Prodotto</h2>
-    <form method="post" class="update-qty-form">
+    <div class="form-header">
+      <h2>Aggiorna Stock Prodotto</h2>
+      <p class="form-subtitle">Gestisci la quantità di <strong>{{ prodotto.nome }}</strong></p>
+      <div class="negozio-info">
+        <span class="negozio-badge">
+          <span class="badge-icon">🏪</span>
+          {{ negozio.nome }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- Informazioni Prodotto -->
+    <div class="product-info-card">
+      <div class="product-summary">
+        {% if prodotto.foto %}
+          <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="product-thumb">
+        {% else %}
+          <div class="product-thumb-placeholder">
+            <span class="thumb-icon">📦</span>
+          </div>
+        {% endif %}
+        <div class="product-details">
+          <h3 class="product-name">{{ prodotto.nome }}</h3>
+          <div class="product-meta">
+            <span class="meta-item">{{ prodotto.marca }}</span>
+            <span class="meta-divider">•</span>
+            <span class="meta-item">{{ prodotto.get_categoria_display }}</span>
+            {% if prodotto.peso %}
+            <span class="meta-divider">•</span>
+            <span class="meta-item">{{ prodotto.peso }}</span>
+            {% endif %}
+          </div>
+          <div class="current-stock">
+            <span class="stock-label">Stock Attuale:</span>
+            <span class="stock-value">{{ prodotto.stock }} pezzi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form di Aggiornamento -->
+    <form method="post" class="quantity-form">
       {% csrf_token %}
-      <div class="form-group">
-        <label>Prodotto:</label>
-        <span>{{ prodotto.nome }}</span>
+      
+      <!-- Operazioni Rapide -->
+      <div class="quick-actions-section">
+        <h3 class="section-title">
+          <span class="section-icon">⚡</span>
+          Azioni Rapide
+        </h3>
+        <div class="quick-actions-grid">
+          <button type="button" class="quick-btn" onclick="setOperation('aumenta', 1)">
+            <span class="btn-icon">➕</span>
+            +1
+          </button>
+          <button type="button" class="quick-btn" onclick="setOperation('aumenta', 5)">
+            <span class="btn-icon">➕</span>
+            +5
+          </button>
+          <button type="button" class="quick-btn" onclick="setOperation('aumenta', 10)">
+            <span class="btn-icon">➕</span>
+            +10
+          </button>
+          <button type="button" class="quick-btn danger" onclick="setOperation('diminuisci', 1)">
+            <span class="btn-icon">➖</span>
+            -1
+          </button>
+          <button type="button" class="quick-btn danger" onclick="setOperation('diminuisci', 5)">
+            <span class="btn-icon">➖</span>
+            -5
+          </button>
+          <button type="button" class="quick-btn danger" onclick="setOperation('diminuisci', 10)">
+            <span class="btn-icon">➖</span>
+            -10
+          </button>
+        </div>
       </div>
-      <div class="form-group">
-        <label for="quantita">Nuova Quantità:</label>
-        <input type="number" name="quantita" id="quantita" value="{{ prodotto.stock }}" min="0" class="form-control" required>
+
+      <!-- Operazioni Personalizzate -->
+      <div class="custom-operations-section">
+        <h3 class="section-title">
+          <span class="section-icon">🎯</span>
+          Operazioni Personalizzate
+        </h3>
+        
+        <div class="operation-tabs">
+          <input type="radio" name="operazione" value="aumenta" id="op-aumenta" checked>
+          <label for="op-aumenta" class="tab-label">
+            <span class="tab-icon">➕</span>
+            Aggiungi
+          </label>
+          
+          <input type="radio" name="operazione" value="diminuisci" id="op-diminuisci">
+          <label for="op-diminuisci" class="tab-label">
+            <span class="tab-icon">➖</span>
+            Rimuovi
+          </label>
+          
+          <input type="radio" name="operazione" value="imposta" id="op-imposta">
+          <label for="op-imposta" class="tab-label">
+            <span class="tab-icon">🎯</span>
+            Imposta
+          </label>
+        </div>
+
+        <div class="quantity-input-section">
+          <div class="input-group">
+            <label for="quantita" class="input-label">Quantità:</label>
+            <div class="quantity-controls">
+              <button type="button" class="qty-btn" onclick="changeQuantity(-1)">-</button>
+              <input type="number" 
+                     name="quantita" 
+                     id="quantita" 
+                     value="1" 
+                     min="0" 
+                     max="100" 
+                     class="styled-input quantity-input">
+              <button type="button" class="qty-btn" onclick="changeQuantity(1)">+</button>
+            </div>
+          </div>
+          
+          <div class="operation-preview">
+            <div class="preview-calculation">
+              <span class="current">{{ prodotto.stock }}</span>
+              <span class="operator" id="operator">+</span>
+              <span class="amount" id="amount">1</span>
+              <span class="equals">=</span>
+              <span class="result" id="result">{{ prodotto.stock|add:1 }}</span>
+            </div>
+            <div class="preview-label">Stock previsto dopo l'operazione</div>
+          </div>
+
+          <div class="validation-info">
+            <div class="info-item">
+              <span class="info-icon">ℹ️</span>
+              Quantità massima per operazione: 100
+            </div>
+            <div class="info-item">
+              <span class="info-icon">⚠️</span>
+              Lo stock non può scendere sotto 0
+            </div>
+          </div>
+        </div>
       </div>
-      <button type="submit" class="btn btn-success">Aggiorna</button>
-      <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">Annulla</a>
+
+      <!-- Pulsanti Azione -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">
+          <span class="btn-icon">💾</span>
+          Aggiorna Stock
+        </button>
+        <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">
+          <span class="btn-icon">❌</span>
+          Annulla
+        </a>
+      </div>
     </form>
   </div>
 </section>
+
+<script>
+const currentStock = {{ prodotto.stock }};
+
+function setOperation(operation, quantity) {
+  // Imposta l'operazione
+  document.querySelector(`input[name="operazione"][value="${operation}"]`).checked = true;
+  
+  // Imposta la quantità
+  document.getElementById('quantita').value = quantity;
+  
+  // Aggiorna il preview
+  updatePreview();
+}
+
+function changeQuantity(delta) {
+  const input = document.getElementById('quantita');
+  const currentValue = parseInt(input.value) || 0;
+  const newValue = Math.max(0, Math.min(100, currentValue + delta));
+  input.value = newValue;
+  updatePreview();
+}
+
+function updatePreview() {
+  const operation = document.querySelector('input[name="operazione"]:checked').value;
+  const quantity = parseInt(document.getElementById('quantita').value) || 0;
+  
+  const operatorSpan = document.getElementById('operator');
+  const amountSpan = document.getElementById('amount');
+  const resultSpan = document.getElementById('result');
+  
+  let newStock;
+  let operator;
+  
+  switch(operation) {
+    case 'aumenta':
+      operator = '+';
+      newStock = currentStock + quantity;
+      break;
+    case 'diminuisci':
+      operator = '-';
+      newStock = Math.max(0, currentStock - quantity);
+      break;
+    case 'imposta':
+      operator = '→';
+      newStock = quantity;
+      break;
+  }
+  
+  operatorSpan.textContent = operator;
+  amountSpan.textContent = quantity;
+  resultSpan.textContent = newStock;
+  
+  // Colora il risultato in base alla validità
+  if (operation === 'diminuisci' && quantity > currentStock) {
+    resultSpan.style.color = '#e74c3c';
+  } else if (newStock > 9999) {
+    resultSpan.style.color = '#e74c3c';
+  } else {
+    resultSpan.style.color = '#27ae60';
+  }
+}
+
+// Event listeners
+document.querySelectorAll('input[name="operazione"]').forEach(radio => {
+  radio.addEventListener('change', updatePreview);
+});
+
+document.getElementById('quantita').addEventListener('input', updatePreview);
+
+// Inizializza il preview
+updatePreview();
+</script>
+
+<style>
+.product-info-card {
+  background: linear-gradient(135deg, #f8faf9 0%, #ffffff 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 3rem;
+  border: 1px solid rgba(62, 116, 71, 0.08);
+  box-shadow: 0 8px 25px rgba(62, 116, 71, 0.08);
+}
+
+.product-summary {
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.product-thumb {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-thumb-placeholder {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.thumb-icon {
+  font-size: 3rem;
+  color: #3e7447;
+  opacity: 0.7;
+}
+
+.product-details h3 {
+  color: #3e7447;
+  margin-bottom: 1rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.product-meta {
+  color: #7f8c8d;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+.meta-divider {
+  margin: 0 1rem;
+  color: #deae52;
+}
+
+.current-stock {
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stock-label {
+  color: #3e7447;
+}
+
+.stock-value {
+  background: linear-gradient(135deg, #deae52 0%, #c8941a 100%);
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(222, 174, 82, 0.3);
+}
+
+/* Form Sections - MODERNE */
+.quick-actions-section,
+.custom-operations-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 6px 20px rgba(62, 116, 71, 0.06);
+  border: 1px solid rgba(62, 116, 71, 0.05);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #3e7447;
+  margin-bottom: 2rem;
+}
+
+.section-icon {
+  font-size: 2rem;
+  background: linear-gradient(135deg, #3e7447 0%, #2c5530 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(62, 116, 71, 0.3);
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.quick-btn {
+  padding: 1.8rem 1.2rem;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, #f8faf9 0%, #ffffff 100%);
+  color: #3e7447;
+  border-radius: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 15px rgba(62, 116, 71, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.quick-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(62, 116, 71, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.quick-btn:hover::before {
+  left: 100%;
+}
+
+.quick-btn:hover {
+  background: linear-gradient(135deg, #3e7447 0%, #2c5530 100%);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(62, 116, 71, 0.2);
+}
+
+.quick-btn.danger {
+  background: linear-gradient(135deg, #fff8f8 0%, #ffffff 100%);
+  color: #e74c3c;
+}
+
+.quick-btn.danger:hover {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  color: white;
+}
+
+.btn-icon {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.operation-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 2.5rem;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(62, 116, 71, 0.08);
+}
+
+.operation-tabs input[type="radio"] {
+  display: none;
+}
+
+.tab-label {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #3e7447;
+  position: relative;
+}
+
+.operation-tabs input[type="radio"]:checked + .tab-label {
+  background: linear-gradient(135deg, #3e7447 0%, #2c5530 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(62, 116, 71, 0.3);
+}
+
+.tab-icon {
+  font-size: 1.3rem;
+}
+
+.quantity-input-section {
+  margin-top: 2.5rem;
+}
+
+.input-group {
+  margin-bottom: 2.5rem;
+  text-align: center;
+}
+
+.input-label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #3e7447;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.qty-btn {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #3e7447;
+  background: linear-gradient(135deg, #f8faf9 0%, #ffffff 100%);
+  color: #3e7447;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(62, 116, 71, 0.15);
+}
+
+.qty-btn:hover {
+  background: linear-gradient(135deg, #3e7447 0%, #2c5530 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(62, 116, 71, 0.25);
+}
+
+.quantity-input {
+  width: 140px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.5rem;
+  padding: 1.2rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #f8faf9 0%, #ffffff 100%);
+  color: #3e7447;
+  box-shadow: 0 4px 12px rgba(62, 116, 71, 0.08);
+  transition: all 0.3s ease;
+}
+
+.quantity-input:focus {
+  border-color: #3e7447;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(62, 116, 71, 0.1);
+  transform: translateY(-1px);
+}
+
+.operation-preview {
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+  padding: 2.5rem;
+  border-radius: 20px;
+  margin: 2.5rem 0;
+  text-align: center;
+  border: 1px solid rgba(62, 116, 71, 0.1);
+  box-shadow: 0 6px 20px rgba(62, 116, 71, 0.05);
+}
+
+.preview-calculation {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+  color: #3e7447;
+  font-family: 'Playfair Display', serif;
+}
+
+.preview-calculation span {
+  margin: 0 1.2rem;
+}
+
+.operator {
+  color: #deae52 !important;
+  font-size: 2.8rem;
+}
+
+.equals {
+  color: #2c3e50 !important;
+}
+
+.result {
+  color: #27ae60 !important;
+  background: rgba(39, 174, 96, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+}
+
+.preview-label {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.validation-info {
+  background: linear-gradient(135deg, #fff8e1 0%, #fffbf0 100%);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 15px;
+  padding: 2rem;
+  margin-top: 2.5rem;
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.08);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  font-size: 1.1rem;
+  color: #856404;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+/* Form Actions - MODERNI */
+.form-actions {
+  background: linear-gradient(135deg, #f8faf9 0%, #ffffff 100%);
+  padding: 3rem;
+  border-top: 1px solid rgba(62, 116, 71, 0.08);
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.form-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 15px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  min-width: 200px;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #3e7447 0%, #2c5530 100%);
+  color: white;
+  box-shadow: 0 8px 20px rgba(62, 116, 71, 0.3);
+  border: none;
+}
+
+.btn-success::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-success:hover::before {
+  left: 100%;
+}
+
+.btn-success:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(62, 116, 71, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);
+  color: #2c3e50;
+  box-shadow: 0 8px 20px rgba(189, 195, 199, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(149, 165, 166, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-summary {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .operation-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-label {
+    border-radius: 15px !important;
+    margin-bottom: 0.5rem;
+  }
+  
+  .quantity-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .preview-calculation {
+    font-size: 2rem;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    padding: 2rem;
+  }
+  
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-info-card,
+  .quick-actions-section,
+  .custom-operations-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+  
+  .section-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.5rem;
+  }
+  
+  .quick-actions-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .quick-btn {
+    padding: 1.5rem;
+  }
+}
+</style>
 {% endblock %}
+
