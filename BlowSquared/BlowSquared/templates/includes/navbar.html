@@ -20,7 +20,11 @@
       {% if user.is_authenticated %}
         <div class="user-menu">
           <span class="user-greeting">Ciao, {{ user.username }}!</span>
-          <a href="{% url 'utenti:profile' %}" class="nav-link">Profilo</a>
+          {% if user.dipendente %}
+            <a href="{% url 'dipendenti:dashboard' %}" class="nav-link">Dashboard</a>
+          {% else %}
+            <a href="{% url 'utenti:profile' %}" class="nav-link">Profilo</a>
+          {% endif %}
           <a href="{% url 'utenti:logout' %}" class="nav-link logout-link">Logout</a>
         </div>
       {% else %}

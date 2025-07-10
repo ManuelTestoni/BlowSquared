@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Dashboard Dipendente{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
@@ -6,40 +7,221 @@
 {% block content %}
 <section class="dashboard-section">
   <div class="dashboard-header">
-    <h1>Gestione Prodotti - {{ negozio.nome }}</h1>
-    <a href="{% url 'dipendenti:aggiungi_prodotto' %}" class="btn btn-primary">Aggiungi Nuovo Prodotto</a>
+    <div class="header-info">
+      <h1>Gestione Prodotti</h1>
+      <p class="header-subtitle">{{ negozio.nome }} - {{ negozio.citta }} ({{ negozio.provincia }})</p>
+      <div class="header-stats">
+        <span class="stat-item">📦 {{ prodotti.count }} prodotti</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'dipendenti:aggiungi_prodotto' %}" class="btn btn-primary">
+        <span class="btn-icon">➕</span>
+        Aggiungi Prodotto
+      </a>
+    </div>
   </div>
-  <table class="table table-striped dipendenti-table">
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Marca</th>
-        <th>Categoria</th>
-        <th>Prezzo</th>
-        <th>Sconto</th>
-        <th>Disponibilità</th>
-        <th>Azioni</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for prodotto in prodotti %}
-      <tr>
-        <td>{{ prodotto.nome }}</td>
-        <td>{{ prodotto.marca }}</td>
-        <td>{{ prodotto.get_categoria_display }}</td>
-        <td>€{{ prodotto.prezzo|floatformat:2 }}</td>
-        <td>{% if prodotto.sconto %}-{{ prodotto.sconto }}%{% else %}-{% endif %}</td>
-        <td>{{ prodotto.stock }}</td>
-        <td>
-          <a href="{% url 'dipendenti:aggiorna_quantita' prodotto.id %}" class="btn btn-sm btn-outline-primary">Aggiorna Q.tà</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="7">Nessun prodotto presente.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+  <div class="dashboard-filters">
+    <div class="filter-group">
+      <div class="search-container">
+        <input type="text" id="searchProduct" placeholder="Cerca per nome o marca..." class="search-input">
+        <span class="search-icon">🔍</span>
+      </div>
+      <select id="categoryFilter" class="filter-select">
+        <option value="">Tutte le categorie</option>
+        <option value="ORTOFRUTTA">Ortofrutta</option>
+        <option value="CARNE">Carne</option>
+        <option value="PESCE">Pesce</option>
+        <option value="LATTICINI">Latticini</option>
+        <option value="PANETTERIA">Panetteria</option>
+        <option value="SALUMI">Salumi e Formaggi</option>
+        <option value="SURGELATI">Surgelati</option>
+        <option value="BEVANDE">Bevande</option>
+        <option value="SNACK">Snack</option>
+        <option value="CASA">Casa e Cura</option>
+        <option value="ALTRO">Altro</option>
+      </select>
+      <select id="stockFilter" class="filter-select">
+        <option value="">Tutte le disponibilità</option>
+        <option value="available">Disponibili (>0)</option>
+        <option value="low">Scorte basse (<10)</option>
+        <option value="out">Esauriti (0)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="products-grid">
+    {% for prodotto in prodotti %}
+    <div class="product-card" data-category="{{ prodotto.categoria }}" data-stock="{{ prodotto.stock }}" 
+         data-name="{{ prodotto.nome|lower }}" data-brand="{{ prodotto.marca|lower }}">
+      <div class="product-image-container">
+        {% if prodotto.foto %}
+          <img src="{{ prodotto.foto.url }}" alt="{{ prodotto.nome }}" class="product-image">
+        {% else %}
+          <div class="product-placeholder">
+            <span class="placeholder-icon">📦</span>
+            <span class="placeholder-text">{{ prodotto.nome|truncatechars:15 }}</span>
+          </div>
+        {% endif %}
+        
+        {% if prodotto.sconto > 0 %}
+          <div class="product-discount">-{{ prodotto.sconto }}%</div>
+        {% endif %}
+        
+        <div class="stock-indicator">
+          {% if prodotto.stock == 0 %}
+            <span class="stock-badge out-of-stock">Esaurito</span>
+          {% elif prodotto.stock < 10 %}
+            <span class="stock-badge low-stock">Scorte basse</span>
+          {% else %}
+            <span class="stock-badge in-stock">Disponibile</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="product-info">
+        <div class="product-header">
+          <h3 class="product-name">{{ prodotto.nome|truncatechars:30 }}</h3>
+          <span class="product-category">{{ prodotto.get_categoria_display }}</span>
+        </div>
+
+        <div class="product-details">
+          <div class="detail-row">
+            <span class="detail-label">Marca:</span>
+            <span class="detail-value">{{ prodotto.marca }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Codice:</span>
+            <span class="detail-value">{{ prodotto.codice_a_barre|default:"N/A" }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Peso:</span>
+            <span class="detail-value">{{ prodotto.peso|default:"N/A" }}</span>
+          </div>
+        </div>
+
+        <div class="product-pricing">
+          <div class="price-info">
+            {% if prodotto.sconto > 0 %}
+              <span class="original-price">€{{ prodotto.prezzo }}</span>
+              <span class="discounted-price">€{{ prodotto.prezzo_scontato|floatformat:2 }}</span>
+            {% else %}
+              <span class="current-price">€{{ prodotto.prezzo }}</span>
+            {% endif %}
+          </div>
+          <div class="stock-info">
+            <span class="stock-label">Disponibilità:</span>
+            <span class="stock-value">{{ prodotto.stock }} pz</span>
+          </div>
+        </div>
+
+        {% if prodotto.descrizione %}
+        <div class="product-description">
+          <p>{{ prodotto.descrizione|truncatechars:100 }}</p>
+        </div>
+        {% endif %}
+
+        <div class="product-actions">
+          <a href="{% url 'dipendenti:aggiorna_quantita' prodotto.id %}" class="action-btn update-btn">
+            <span class="btn-icon">📊</span>
+            Aggiorna Stock
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="no-products">
+      <div class="no-products-content">
+        <div class="no-products-icon">📦</div>
+        <h3>Nessun Prodotto</h3>
+        <p>Non ci sono ancora prodotti associati a questo negozio.</p>
+        <a href="{% url 'dipendenti:aggiungi_prodotto' %}" class="btn btn-primary">
+          Aggiungi il Primo Prodotto
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </section>
+
+<script>
+// Filtro prodotti in tempo reale - CORRETTO
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('searchProduct');
+  const categoryFilter = document.getElementById('categoryFilter');
+  const stockFilter = document.getElementById('stockFilter');
+  const productCards = document.querySelectorAll('.product-card');
+
+  // Debug iniziale
+  console.log('Prodotti trovati nella pagina:', productCards.length);
+  productCards.forEach(card => {
+    const name = card.dataset.name;
+    const category = card.dataset.category;
+    console.log(`Prodotto: ${name} - Categoria: ${category}`);
+  });
+
+  function filterProducts() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedCategory = categoryFilter.value;
+    const selectedStock = stockFilter.value;
+
+    console.log('Filtri applicati:', {
+      search: searchTerm,
+      category: selectedCategory,
+      stock: selectedStock
+    });
+
+    let visibleCount = 0;
+
+    productCards.forEach(card => {
+      const name = card.dataset.name || '';
+      const brand = card.dataset.brand || '';
+      const category = card.dataset.category || '';
+      const stock = parseInt(card.dataset.stock) || 0;
+
+      let showCard = true;
+
+      // Filtro ricerca
+      if (searchTerm && !name.includes(searchTerm) && !brand.includes(searchTerm)) {
+        showCard = false;
+      }
+
+      // Filtro categoria - CORRETTO
+      if (selectedCategory && category !== selectedCategory) {
+        showCard = false;
+        console.log(`Prodotto ${name} nascosto: categoria ${category} !== ${selectedCategory}`);
+      }
+
+      // Filtro stock
+      if (selectedStock) {
+        switch(selectedStock) {
+          case 'available':
+            if (stock <= 0) showCard = false;
+            break;
+          case 'low':
+            if (stock >= 10 || stock <= 0) showCard = false;
+            break;
+          case 'out':
+            if (stock > 0) showCard = false;
+            break;
+        }
+      }
+
+      if (showCard) {
+        card.style.display = 'block';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    console.log(`Prodotti visibili dopo filtro: ${visibleCount}`);
+  }
+
+  searchInput.addEventListener('input', filterProducts);
+  categoryFilter.addEventListener('change', filterProducts);
+  stockFilter.addEventListener('change', filterProducts);
+});
+</script>
 {% endblock %}

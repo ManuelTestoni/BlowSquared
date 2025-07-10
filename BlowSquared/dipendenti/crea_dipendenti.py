@@ -77,12 +77,12 @@ def crea_dipendenti():
         
         user1 = User.objects.create_user(
             username='mario.rossi',
-            email='mario.rossi@blowsquared.com',
+            email='mario.rossi@blowsquared.com',  # Corretto: rimosso il typo "ee"
             password='password123',
             first_name='Mario',
             last_name='Rossi'
         )
-        print(f"✅ Utente creato: {user1.username}")
+        print(f"✅ Utente creato: {user1.username} - Email: {user1.email}")
         
         dipendente1 = Dipendente.objects.create(
             user=user1,
@@ -115,7 +115,7 @@ def crea_dipendenti():
             first_name='Laura',
             last_name='Bianchi'
         )
-        print(f"✅ Utente creato: {user2.username}")
+        print(f"✅ Utente creato: {user2.username} - Email: {user2.email}")
         
         dipendente2 = Dipendente.objects.create(
             user=user2,
@@ -139,19 +139,21 @@ def crea_dipendenti():
     print("=" * 50)
     print("🏪 Dipendente 1:")
     print("   Username: mario.rossi")
+    print("   Email: mario.rossi@blowsquared.com")
     print("   Password: password123")
     print()
     print("🏪 Dipendente 2:")
-    print("   Username: laura.bianchi")  
+    print("   Username: laura.bianchi")
+    print("   Email: laura.bianchi@blowsquared.com")
     print("   Password: password123")
     print("=" * 50)
     print(f"\n💡 Vai su: http://127.0.0.1:8000/dipendenti/login/ per testare l'accesso")
     
-    # Verifica finale
+    # Verifica finale con stampa dettagliata
     print("\n🔍 VERIFICA FINALE:")
     dipendenti_creati = Dipendente.objects.all()
     for d in dipendenti_creati:
-        print(f"✅ {d.nome} {d.cognome} - {d.negozio.nome}")
+        print(f"✅ {d.nome} {d.cognome} - Username: {d.user.username} - Email: {d.user.email} - Password impostata: {'Sì' if d.user.password else 'No'}")
 
 if __name__ == "__main__":
     crea_dipendenti()

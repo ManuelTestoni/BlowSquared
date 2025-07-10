@@ -39,9 +39,24 @@ class Prodotto(models.Model):
     ingredienti = models.TextField(blank=True)
 
     numero_recensioni = models.PositiveIntegerField(default=0)
+    negozio = models.ForeignKey(
+        'negozi.Negozio', 
+        on_delete=models.CASCADE, 
+        related_name='prodotti', 
+        null=True, 
+        blank=True,
+        help_text="Negozio specifico (vuoto = disponibile in tutti i negozi)"
+    )
 
     def __str__(self):
-        return f"{self.nome} - {self.marca}"
+        negozio_info = f" - {self.negozio.nome}" if self.negozio else ""
+        return f"{self.nome} ({self.marca}){negozio_info}"
+
+    @property 
+    def prezzo_scontato(self):
+        if self.sconto > 0:
+            return self.prezzo * (100 - self.sconto) / 100
+        return self.prezzo
 
 class Ordine(models.Model):
     STATO = [

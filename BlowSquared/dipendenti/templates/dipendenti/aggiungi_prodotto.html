@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Aggiungi Prodotto{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
@@ -6,12 +7,169 @@
 {% block content %}
 <section class="form-section">
   <div class="form-container">
-    <h2>Aggiungi Nuovo Prodotto</h2>
+    <div class="form-header">
+      <h2>Aggiungi Nuovo Prodotto</h2>
+      <p class="form-subtitle">Al catalogo di <strong>{{ negozio.nome }}</strong></p>
+      <div class="negozio-info">
+        <span class="negozio-badge">
+          <span class="badge-icon">🏪</span>
+          {{ negozio.citta }} - {{ negozio.provincia }}
+        </span>
+      </div>
+    </div>
+    
     <form method="post" enctype="multipart/form-data" class="product-form">
       {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-success">Salva Prodotto</button>
-      <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">Annulla</a>
+      
+      <!-- Sezione Informazioni Base -->
+      <div class="form-section-group">
+        <h3 class="section-title">
+          <span class="section-icon">📝</span>
+          Informazioni Base
+        </h3>
+        <div class="form-grid">
+          <div class="form-group">
+            {{ form.nome.label_tag }}
+            {{ form.nome }}
+            {% if form.nome.errors %}
+              <div class="field-errors">{{ form.nome.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            {{ form.marca.label_tag }}
+            {{ form.marca }}
+            {% if form.marca.errors %}
+              <div class="field-errors">{{ form.marca.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            {{ form.categoria.label_tag }}
+            {{ form.categoria }}
+            {% if form.categoria.errors %}
+              <div class="field-errors">{{ form.categoria.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            {{ form.peso.label_tag }}
+            {{ form.peso }}
+            {% if form.peso.errors %}
+              <div class="field-errors">{{ form.peso.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione Prezzi e Disponibilità -->
+      <div class="form-section-group">
+        <h3 class="section-title">
+          <span class="section-icon">💰</span>
+          Prezzi e Disponibilità
+        </h3>
+        <div class="form-grid">
+          <div class="form-group">
+            {{ form.prezzo.label_tag }}
+            {{ form.prezzo }}
+            {% if form.prezzo.errors %}
+              <div class="field-errors">{{ form.prezzo.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            {{ form.sconto.label_tag }}
+            {{ form.sconto }}
+            {% if form.sconto.errors %}
+              <div class="field-errors">{{ form.sconto.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            {{ form.quantita.label_tag }}
+            {{ form.quantita }}
+            {% if form.quantita.errors %}
+              <div class="field-errors">{{ form.quantita.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione Dettagli Prodotto -->
+      <div class="form-section-group">
+        <h3 class="section-title">
+          <span class="section-icon">📋</span>
+          Dettagli Prodotto
+        </h3>
+        <div class="form-group">
+          {{ form.descrizione.label_tag }}
+          {{ form.descrizione }}
+          {% if form.descrizione.errors %}
+            <div class="field-errors">{{ form.descrizione.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            {{ form.codice_a_barre.label_tag }}
+            {{ form.codice_a_barre }}
+            {% if form.codice_a_barre.errors %}
+              <div class="field-errors">{{ form.codice_a_barre.errors }}</div>
+            {% endif %}
+          </div>
+          <div class="form-group">
+            {{ form.data_scadenza.label_tag }}
+            {{ form.data_scadenza }}
+            {% if form.data_scadenza.errors %}
+              <div class="field-errors">{{ form.data_scadenza.errors }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezione Informazioni Nutrizionali -->
+      <div class="form-section-group">
+        <h3 class="section-title">
+          <span class="section-icon">🍎</span>
+          Informazioni Nutrizionali (Opzionale)
+        </h3>
+        <div class="form-group">
+          {{ form.ingredienti.label_tag }}
+          {{ form.ingredienti }}
+          {% if form.ingredienti.errors %}
+            <div class="field-errors">{{ form.ingredienti.errors }}</div>
+          {% endif %}
+        </div>
+        <div class="form-group">
+          {{ form.valori_nutrizionali.label_tag }}
+          {{ form.valori_nutrizionali }}
+          {% if form.valori_nutrizionali.errors %}
+            <div class="field-errors">{{ form.valori_nutrizionali.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Sezione Immagine -->
+      <div class="form-section-group">
+        <h3 class="section-title">
+          <span class="section-icon">📷</span>
+          Immagine Prodotto
+        </h3>
+        <div class="form-group">
+          {{ form.foto.label_tag }}
+          {{ form.foto }}
+          {% if form.foto.errors %}
+            <div class="field-errors">{{ form.foto.errors }}</div>
+          {% endif %}
+          <small class="form-help">Formati supportati: JPG, PNG, GIF (max 5MB)</small>
+        </div>
+      </div>
+
+      <!-- Pulsanti Azione -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">
+          <span class="btn-icon">💾</span>
+          Salva Prodotto
+        </button>
+        <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">
+          <span class="btn-icon">❌</span>
+          Annulla
+        </a>
+      </div>
     </form>
   </div>
 </section>
