@@ -23,16 +23,16 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    path('prodotti/', include('prodotti.urls')),
-    path('utenti/', include('utenti.urls')),
-    path('negozi/', include('negozi.urls')),
-    path('carrello/', include('carrello.urls')),
-    path('volantino/', include('volantino.urls')),
-    path('forum/', include('forum.urls')),  # Aggiungi il forum
+    path('utenti/', include('utenti.urls', namespace='utenti')),
+    path('prodotti/', include('prodotti.urls', namespace='prodotti')),
+    path('negozi/', include('negozi.urls', namespace='negozi')),
+    path('carrello/', include('carrello.urls', namespace='carrello')),
+    path('volantino/', include('volantino.urls', namespace='volantino')),
+    path('forum/', include('forum.urls', namespace='forum')),
+    path('dipendenti/', include('dipendenti.urls', namespace='dipendenti')),
 ]
 
-# Servi i file media durante lo sviluppo
+# Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

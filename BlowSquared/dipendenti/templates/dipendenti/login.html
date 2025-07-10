@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Accesso Dipendenti{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
+{% endblock %}
+{% block content %}
+<section class="dipendenti-login-section">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="company-logo">
+          <span class="logo-icon">🏢</span>
+        </div>
+        <h2 class="login-title">Accesso Dipendenti</h2>
+        <p class="login-subtitle">Area riservata al personale autorizzato</p>
+      </div>
+      
+      <form method="post" class="dipendenti-login-form">
+        {% csrf_token %}
+        {% if error %}
+          <div class="error-alert">
+            <span class="error-icon">⚠️</span>
+            <span class="error-message">{{ error }}</span>
+          </div>
+        {% endif %}
+        
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="text" name="email" id="email" class="styled-input" required autofocus placeholder=" ">
+            <label for="email" class="floating-label">Email aziendale</label>
+            <span class="input-icon">📧</span>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" name="password" id="password" class="styled-input" required placeholder=" ">
+            <label for="password" class="floating-label">Password</label>
+            <span class="input-icon">🔒</span>
+          </div>
+        </div>
+        
+        <button type="submit" class="login-btn">
+          <span class="btn-content">
+            <span class="btn-icon">🔑</span>
+            <span class="btn-text">Accedi all'Area Riservata</span>
+          </span>
+        </button>
+      </form>
+      
+      <div class="login-footer">
+        <div class="security-notice">
+          <h4 class="notice-title">
+            <span class="notice-icon">🔐</span>
+            Accesso Sicuro
+          </h4>
+          <ul class="notice-list">
+            <li>Utilizza le credenziali fornite dal responsabile</li>
+            <li>Tutte le attività sono monitorate per sicurezza</li>
+            <li>Per assistenza contatta l'amministratore di sistema</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
