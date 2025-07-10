@@ -1,7 +1,7 @@
+app_name = 'dipendenti'
+
 from django.urls import path
 from . import views
-
-app_name = 'dipendenti'
 
 urlpatterns = [
     path('login/', views.login_dipendente, name='login'),

@@ -12,4 +12,5 @@ urlpatterns = [
     path('lista-spesa/', views.lista_spesa_view, name='lista_spesa'),
     path('negozi/', views.negozi_view, name='negozi'),
     path('impostazioni/', views.impostazioni_view, name='impostazioni'),
+    path('dipendenti/', include('dipendenti.urls', namespace='dipendenti')),
 ]

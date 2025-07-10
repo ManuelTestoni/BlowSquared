@@ -24,9 +24,16 @@
           <a href="{% url 'utenti:logout' %}" class="nav-link logout-link">Logout</a>
         </div>
       {% else %}
-        <a href="{% url 'utenti:signup' %}" class="nav-link">Account</a>
+        <div class="accesso-dropdown" style="position: relative; display: inline-block;">
+          <a href="#" class="nav-link" id="accessoDropdown" role="button" tabindex="0">
+            <span class="hamburger-icon">☰</span> Accesso
+          </a>
+          <div class="dropdown-menu accesso-menu" aria-labelledby="accessoDropdown">
+            <a class="dropdown-item" href="{% url 'utenti:login' %}">Accesso Clienti</a>
+            <a class="dropdown-item" href="{% url 'dipendenti:login' %}">Accesso Dipendenti</a>
+          </div>
+        </div>
       {% endif %}
-      
       <!-- Cart Icon - Always visible on the right -->
       <div class="nav-cart">
         {% if user.is_authenticated %}
@@ -47,3 +54,38 @@
     </div>
   </div>
 </nav>
+<style>
+.hamburger-icon {
+  font-size: 1.3em;
+  margin-right: 0.3em;
+  vertical-align: middle;
+}
+.accesso-dropdown .dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(44,62,80,0.08);
+  z-index: 100;
+  padding: 0.5rem 0;
+}
+.accesso-dropdown:hover .dropdown-menu,
+.accesso-dropdown:focus-within .dropdown-menu {
+  display: block;
+}
+.accesso-dropdown .dropdown-item {
+  padding: 0.7rem 1.2rem;
+  color: #2c3e50;
+  text-decoration: none;
+  transition: background 0.2s;
+  font-weight: 500;
+  display: block;
+}
+.accesso-dropdown .dropdown-item:hover {
+  background: #f1f3f6;
+  color: #1769aa;
+}
+</style>

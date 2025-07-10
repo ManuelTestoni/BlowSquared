@@ -43,13 +43,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',  # Aggiungi Channels
+    'channels', 
     'prodotti',
     'utenti',
     'negozi',
     'carrello',
     'volantino',
-    'forum',  # Nuova app forum
+    'forum', 
+    'dipendenti',  
 ]
 
 MIDDLEWARE = [
