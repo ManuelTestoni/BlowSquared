@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Dirigente - BlowSquared{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dirigenti.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard-section">
+  <!-- Header Dashboard -->
+  <div class="dashboard-header">
+    <div class="header-info">
+      <h1>Dashboard Direzione</h1>
+      <p class="header-subtitle">{{ dirigente.nome_completo }} - {{ dirigente.get_livello_accesso_display }}</p>
+      <div class="header-stats">
+        <span class="stat-item">🏪 {{ stats.negozi_gestiti }} negozi gestiti</span>
+        <span class="stat-item">👥 {{ stats.dipendenti_totali }} dipendenti</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'dirigenti:gestione_negozi' %}" class="btn btn-primary">
+        <span class="btn-icon">🏪</span>
+        Gestisci Negozi
+      </a>
+    </div>
+  </div>
+
+  <!-- Statistiche Rapide -->
+  <div class="stats-grid">
+    <div class="stat-card revenue">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <h3 class="stat-number">€{{ stats.fatturato_mese|floatformat:2 }}</h3>
+        <p class="stat-label">Fatturato Mensile</p>
+        <span class="stat-trend positive">+12.5% vs ultimo mese</span>
+      </div>
+    </div>
+    
+    <div class="stat-card orders">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ stats.ordini_mese }}</h3>
+        <p class="stat-label">Ordini Questo Mese</p>
+        <span class="stat-trend positive">+8.2% vs ultimo mese</span>
+      </div>
+    </div>
+    
+    <div class="stat-card products">
+      <div class="stat-icon">🛍️</div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ stats.prodotti_totali }}</h3>
+        <p class="stat-label">Prodotti Attivi</p>
+        <span class="stat-trend neutral">Stabili</span>
+      </div>
+    </div>
+    
+    <div class="stat-card performance">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <h3 class="stat-number">94.2%</h3>
+        <p class="stat-label">Performance Score</p>
+        <span class="stat-trend positive">+2.1% vs ultimo mese</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grafici Analytics -->
+  <div class="charts-section">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Andamento Vendite Settimanali</h3>
+        <div class="chart-controls">
+          <button class="chart-btn active" data-period="7">7 giorni</button>
+          <button class="chart-btn" data-period="30">30 giorni</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="venditeTrendChart"></canvas>
+      </div>
+    </div>
+    
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Performance per Negozio</h3>
+        <div class="chart-legend">
+          <span class="legend-item">
+            <span class="legend-color primary"></span>
+            Fatturato
+          </span>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="negoziPerformanceChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabelle di Dettaglio -->
+  <div class="tables-section">
+    <!-- Negozi Gestiti -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>
+          <span class="table-icon">🏪</span>
+          Negozi Sotto Gestione
+        </h3>
+        <a href="{% url 'dirigenti:gestione_negozi' %}" class="table-action">Vedi Tutti</a>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Negozio</th>
+              <th>Città</th>
+              <th>Dipendenti</th>
+              <th>Fatturato Mese</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for negozio in negozi_gestiti %}
+            <tr>
+              <td>
+                <div class="cell-content">
+                  <strong>{{ negozio.nome }}</strong>
+                  <small>{{ negozio.codice_negozio }}</small>
+                </div>
+              </td>
+              <td>{{ negozio.citta }} ({{ negozio.provincia }})</td>
+              <td>{{ negozio.dipendenti.count }}</td>
+              <td>€0.00</td> <!-- TODO: calcolare fatturato -->
+              <td>
+                <span class="status-badge active">Operativo</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Prodotti Top -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3>
+          <span class="table-icon">🏆</span>
+          Prodotti Più Venduti
+        </h3>
+        <a href="{% url 'dirigenti:gestione_prodotti' %}" class="table-action">Gestisci</a>
+      </div>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Prodotto</th>
+              <th>Categoria</th>
+              <th>Prezzo</th>
+              <th>Stock</th>
+              <th>Vendite</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for prodotto in prodotti_top %}
+            <tr>
+              <td>
+                <div class="cell-content">
+                  <strong>{{ prodotto.nome|truncatechars:30 }}</strong>
+                  <small>{{ prodotto.marca }}</small>
+                </div>
+              </td>
+              <td>{{ prodotto.get_categoria_display }}</td>
+              <td>€{{ prodotto.prezzo }}</td>
+              <td>
+                <span class="stock-indicator {% if prodotto.stock > 20 %}high{% elif prodotto.stock > 5 %}medium{% else %}low{% endif %}">
+                  {{ prodotto.stock }}
+                </span>
+              </td>
+              <td>-</td> <!-- TODO: calcolare vendite -->
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Dati per i grafici dal backend
+const chartsData = {{ charts_data|safe }};
+
+// Grafico Trend Vendite
+const trendCtx = document.getElementById('venditeTrendChart').getContext('2d');
+const trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: {
+        labels: chartsData.vendite_giornaliere.labels,
+        datasets: [{
+            label: 'Fatturato (€)',
+            data: chartsData.vendite_giornaliere.data,
+            borderColor: '#3e7447',
+            backgroundColor: 'rgba(62, 116, 71, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '€' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Grafico Performance Negozi
+const negoziCtx = document.getElementById('negoziPerformanceChart').getContext('2d');
+const negoziChart = new Chart(negoziCtx, {
+    type: 'bar',
+    data: {
+        labels: chartsData.vendite_per_negozio.labels,
+        datasets: [{
+            label: 'Fatturato (€)',
+            data: chartsData.vendite_per_negozio.data,
+            backgroundColor: '#deae52',
+            borderColor: '#deae52',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return '€' + value.toFixed(2);
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

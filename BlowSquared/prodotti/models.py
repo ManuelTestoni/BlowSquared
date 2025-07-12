@@ -39,13 +39,11 @@ class Prodotto(models.Model):
     ingredienti = models.TextField(blank=True)
 
     numero_recensioni = models.PositiveIntegerField(default=0)
-    negozio = models.ForeignKey(
-        'negozi.Negozio', 
-        on_delete=models.CASCADE, 
-        related_name='prodotti', 
-        null=True, 
+    negozi = models.ManyToManyField(
+        'negozi.Negozio',
+        related_name='prodotti_disponibili',
         blank=True,
-        help_text="Negozio specifico (vuoto = disponibile in tutti i negozi)"
+        help_text="Negozi dove questo prodotto è disponibile. Lascia vuoto per renderlo disponibile in tutti i negozi."
     )
 
     def __str__(self):
@@ -57,6 +55,19 @@ class Prodotto(models.Model):
         if self.sconto > 0:
             return self.prezzo * (100 - self.sconto) / 100
         return self.prezzo
+    
+    def is_disponibile_in_negozio(self, negozio):
+        """Verifica se il prodotto è disponibile in un negozio specifico"""
+        if not self.negozi.exists():
+            # Se non ha negozi associati, è disponibile ovunque (prodotto comune)
+            return True
+        return self.negozi.filter(id=negozio.id).exists()
+    
+    def get_negozi_disponibilita(self):
+        """Restituisce la lista dei negozi dove è disponibile"""
+        if not self.negozi.exists():
+            return "Tutti i negozi"
+        return ", ".join([n.nome for n in self.negozi.all()])
 
 class Ordine(models.Model):
     STATO = [

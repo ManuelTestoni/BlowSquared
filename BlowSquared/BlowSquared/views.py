@@ -27,14 +27,11 @@ def home(request):
         '8044444000004': 'Locale',
     }
     
-    # Aggiungi badge ai prodotti
+    # Aggiungi badge ai prodotti (NON assegnare a prezzo_scontato)
     for prodotto in prodotti_eccellenza:
         prodotto.badge = badge_mapping.get(prodotto.codice_a_barre, 'Eccellenza')
-        # Calcola prezzo scontato se presente
-        if prodotto.sconto > 0:
-            prodotto.prezzo_scontato = prodotto.prezzo * (100 - prodotto.sconto) / 100
-        else:
-            prodotto.prezzo_scontato = prodotto.prezzo
+        # NON fare: prodotto.prezzo_scontato = ... 
+        # La property prezzo_scontato è già calcolata automaticamente nel modello
     
     context = {
         'prodotti_eccellenza': prodotti_eccellenza,

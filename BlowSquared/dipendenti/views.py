@@ -11,21 +11,16 @@ from django.db import models
 def dashboard_dipendente(request):
     dipendente = get_object_or_404(Dipendente, user=request.user)
     
-    # LOGICA CORRETTA: Mostra SOLO prodotti del negozio specifico + prodotti comuni (senza negozio)
-    # NON deve mostrare prodotti di altri negozi specifici
+    # QUERY PULITA - Prodotti per negozio specifico
     prodotti = Prodotto.objects.filter(
-        models.Q(negozio=dipendente.negozio) |  # Prodotti specifici del negozio del dipendente
-        models.Q(negozio__isnull=True)         # Prodotti comuni (presenti in tutti i negozi)
-    ).order_by('nome')
+        models.Q(negozi=dipendente.negozio) |  # Prodotti specifici per questo negozio
+        models.Q(negozi__isnull=True)          # Prodotti senza negozi associati (comuni)
+    ).distinct().order_by('nome')
     
-    # Debug per verificare la query
-    print(f"Dipendente: {dipendente.nome} - Negozio: {dipendente.negozio.nome}")
-    print(f"Prodotti trovati: {prodotti.count()}")
-    for p in prodotti:
-        negozio_info = p.negozio.nome if p.negozio else "COMUNE"
-        print(f"- {p.nome} ({p.categoria}) - Negozio: {negozio_info}")
-    
-    return render(request, 'dipendenti/dashboard.html', {'prodotti': prodotti, 'negozio': dipendente.negozio})
+    return render(request, 'dipendenti/dashboard.html', {
+        'prodotti': prodotti, 
+        'negozio': dipendente.negozio
+    })
 
 @login_required
 def aggiungi_prodotto(request):
@@ -34,10 +29,11 @@ def aggiungi_prodotto(request):
         form = ProdottoForm(request.POST, request.FILES)
         if form.is_valid():
             prodotto = form.save(commit=False)
-            # IMPORTANTE: Assegna il negozio del dipendente al prodotto
-            prodotto.negozio = dipendente.negozio
             prodotto.stock = form.cleaned_data['quantita']
             prodotto.save()
+            
+            # IMPORTANTE: Associa il prodotto SOLO al negozio del dipendente
+            prodotto.negozi.add(dipendente.negozio)
             
             messages.success(request, f'Prodotto "{prodotto.nome}" aggiunto con successo al catalogo di {dipendente.negozio.nome}!')
             return redirect('dipendenti:dashboard')
@@ -51,10 +47,12 @@ def aggiungi_prodotto(request):
 def aggiorna_quantita(request, prodotto_id):
     dipendente = get_object_or_404(Dipendente, user=request.user)
     
-    # OPZIONE 1: Query separata più leggibile
+    # NUOVA LOGICA: Verifica usando il campo ManyToMany
     prodotti_accessibili = Prodotto.objects.filter(
-        models.Q(negozio=dipendente.negozio) | models.Q(negozio__isnull=True)
-    )
+        models.Q(negozi=dipendente.negozio) | 
+        models.Q(negozi__isnull=True)
+    ).distinct()
+    
     prodotto = get_object_or_404(prodotti_accessibili, id=prodotto_id)
     
     if request.method == 'POST':
@@ -149,32 +147,26 @@ def login_dipendente(request):
         email_or_username = request.POST.get('email')
         password = request.POST.get('password')
         
-        print(f"Tentativo login: {email_or_username} / {password}")  # Debug
-        
         # Prova prima con username diretto
         user = authenticate(request, username=email_or_username, password=password)
-        print(f"Authenticate con username: {user}")  # Debug
         
         # Se non funziona, prova a cercare l'utente per email e usa il suo username
         if user is None:
             try:
                 from django.contrib.auth.models import User
                 user_obj = User.objects.get(email=email_or_username)
-                print(f"Trovato utente per email: {user_obj.username}")  # Debug
                 user = authenticate(request, username=user_obj.username, password=password)
-                print(f"Authenticate con username trovato: {user}")  # Debug
             except User.DoesNotExist:
-                print("Nessun utente trovato per questa email")  # Debug
+                pass
         
         if user is not None:
-            print(f"User autenticato, controllo dipendente...")  # Debug
             if hasattr(user, 'dipendente'):
                 login(request, user)
-                print("Login dipendente riuscito!")  # Debug
                 return redirect('dipendenti:dashboard')
             else:
                 error = "Questo utente non è un dipendente."
-            print("Credenziali non valide")  # Debug
+        else:
+            error = "Credenziali non valide."
     
     return render(request, 'dipendenti/login.html', {'error': error})
        

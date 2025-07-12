@@ -125,11 +125,11 @@ class Negozio(models.Model):
     )
     
     # Dati amministrativi
-    direttore = models.CharField(
+    direttore_nome = models.CharField(  # RINOMINATO DA 'direttore' A 'direttore_nome'
         max_length=100,
         blank=True,
         null=True,
-        help_text="Nome del direttore del punto vendita"
+        help_text="Nome del direttore del punto vendita (legacy field)"
     )
     data_apertura = models.DateField(
         help_text="Data di apertura del negozio"

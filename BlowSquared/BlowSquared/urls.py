@@ -30,6 +30,7 @@ urlpatterns = [
     path('volantino/', include('volantino.urls', namespace='volantino')),
     path('forum/', include('forum.urls', namespace='forum')),
     path('dipendenti/', include('dipendenti.urls', namespace='dipendenti')),
+    path('dirigenti/', include('dirigenti.urls', namespace='dirigenti')),  # NUOVA APP REGISTRATA
 ]
 
 # Serve media files in development

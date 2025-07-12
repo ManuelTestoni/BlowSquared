@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'carrello',
     'volantino',
     'forum', 
-    'dipendenti',  
+    'dipendenti',
+    'dirigenti',  # NUOVA APP AGGIUNTA
 ]
 
 MIDDLEWARE = [
