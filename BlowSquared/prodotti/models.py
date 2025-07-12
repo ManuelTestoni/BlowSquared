@@ -47,8 +47,13 @@ class Prodotto(models.Model):
     )
 
     def __str__(self):
-        negozio_info = f" - {self.negozio.nome}" if self.negozio else ""
-        return f"{self.nome} ({self.marca}){negozio_info}"
+        negozi_info = ""
+        if self.negozi.exists():
+            negozi_nomi = [n.nome for n in self.negozi.all()[:2]]  # Primi 2 negozi
+            negozi_info = f" - {', '.join(negozi_nomi)}"
+            if self.negozi.count() > 2:
+                negozi_info += f" (+{self.negozi.count()-2} altri)"
+        return f"{self.nome} ({self.marca}){negozi_info}"
 
     @property 
     def prezzo_scontato(self):

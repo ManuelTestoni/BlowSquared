@@ -39,6 +39,9 @@ def crea_dirigenti():
     # Dirigente 1 - Direttore Generale
     print("\n👔 Creazione Direttore Generale...")
     try:
+        # Seleziona il primo negozio disponibile come negozio principale
+        negozio_principale = negozi.first()
+        
         if User.objects.filter(username='alessandro.verdi').exists():
             print("🗑️ Rimuovo utente esistente: alessandro.verdi")
             User.objects.filter(username='alessandro.verdi').delete()
@@ -50,8 +53,17 @@ def crea_dirigenti():
             first_name='Alessandro',
             last_name='Verdi'
         )
-        print(f"✅ Utente creato: {user1.username} - Email: {user1.email}")
+        print(f"✅ Utente creato: {user1.username}")
+        print(f"   - Email: {user1.email}")
+        print(f"   - Password hash: {user1.password[:30]}...")
         
+        # Verifica password
+        if user1.check_password('password123'):
+            print("✅ Password verificata correttamente")
+        else:
+            print("❌ Errore nella verifica password")
+        
+        # Crea dirigente (senza i parametri errati)
         dirigente1 = Dirigente.objects.create(
             user=user1,
             nome='Alessandro',
@@ -61,154 +73,122 @@ def crea_dirigenti():
             indirizzo='Via Roma 456, Bologna',
             data_nascita=date(1978, 3, 15),
             livello_accesso='direttore_generale',
-            negozio_principale=bologna if bologna else negozi.first(),
+            negozio_principale=negozio_principale,
             data_assunzione=date(2010, 1, 15),
             stipendio_base=75000.00,
-            note_direzione='Direttore Generale con piena autonomia decisionale su tutti i negozi della catena.'
+            note_direzione='Direttore Generale con piena autonomia decisionale.'
         )
+        print(f"✅ Dirigente creato: {dirigente1.nome_completo}")
+        print(f"   - Livello: {dirigente1.get_livello_accesso_display()}")
+        print(f"   - Negozio: {dirigente1.negozio_principale.nome}")
         
         # Il direttore generale ha accesso a tutti i negozi
         dirigente1.negozi_supervisionati.set(negozi.all())
-        
-        print(f"✅ Dirigente creato: {dirigente1.nome} {dirigente1.cognome} - {dirigente1.get_livello_accesso_display()}")
-        print(f"   Negozio principale: {dirigente1.negozio_principale.nome}")
-        print(f"   Negozi supervisionati: {dirigente1.negozi_supervisionati.count()} (tutti)")
+        print(f"   - Negozi supervisionati: {dirigente1.negozi_supervisionati.count()}")
         
     except Exception as e:
         print(f"❌ ERRORE creazione direttore generale: {e}")
         import traceback
         traceback.print_exc()
+        return
+    
+    # Test immediato di autenticazione
+    print(f"\n🧪 TEST AUTENTICAZIONE IMMEDIATO:")
+    from django.contrib.auth import authenticate
+    
+    test_user = authenticate(username='alessandro.verdi', password='password123')
+    if test_user:
+        print(f"✅ Autenticazione riuscita per: {test_user.username}")
+        if hasattr(test_user, 'dirigente'):
+            print(f"✅ Profilo dirigente trovato: {test_user.dirigente.nome_completo}")
+        else:
+            print(f"❌ Profilo dirigente NON trovato")
+    else:
+        print(f"❌ Autenticazione fallita")
     
     # Dirigente 2 - Vice Direttore
-    print("\n👩‍💼 Creazione Vice Direttore...")
+    print("\n👔 Creazione Vice Direttore...")
     try:
-        if User.objects.filter(username='sofia.bianchi').exists():
-            print("🗑️ Rimuovo utente esistente: sofia.bianchi")
-            User.objects.filter(username='sofia.bianchi').delete()
+        if User.objects.filter(username='marco.rossi').exists():
+            print("🗑️ Rimuovo utente esistente: marco.rossi")
+            User.objects.filter(username='marco.rossi').delete()
         
         user2 = User.objects.create_user(
-            username='sofia.bianchi',
-            email='sofia.bianchi@blowsquared.com',
+            username='marco.rossi',
+            email='marco.rossi@blowsquared.com',
             password='password123',
-            first_name='Sofia',
-            last_name='Bianchi'
+            first_name='Marco',
+            last_name='Rossi'
         )
-        print(f"✅ Utente creato: {user2.username} - Email: {user2.email}")
+        print(f"✅ Utente creato: {user2.username}")
         
         dirigente2 = Dirigente.objects.create(
             user=user2,
-            nome='Sofia',
-            cognome='Bianchi',
+            nome='Marco',
+            cognome='Rossi',
             eta=38,
-            telefono='059-1234567',
-            indirizzo='Corso Vittorio Emanuele 789, Modena',
+            telefono='051-8765432',
+            indirizzo='Via Indipendenza 123, Bologna',
             data_nascita=date(1985, 7, 22),
             livello_accesso='vice_direttore',
-            negozio_principale=modena if modena else negozi.first(),
-            data_assunzione=date(2015, 9, 1),
+            negozio_principale=negozio_principale,
+            data_assunzione=date(2015, 3, 1),
             stipendio_base=55000.00,
-            note_direzione='Vice Direttore specializzata in operations e supply chain management.'
+            note_direzione='Vice Direttore con responsabilità operative.'
         )
+        print(f"✅ Dirigente creato: {dirigente2.nome_completo}")
         
-        # Il vice direttore supervisiona tutti i negozi tranne quello principale
-        altri_negozi = negozi.exclude(id=dirigente2.negozio_principale.id)
-        dirigente2.negozi_supervisionati.set(altri_negozi)
-        
-        print(f"✅ Dirigente creato: {dirigente2.nome} {dirigente2.cognome} - {dirigente2.get_livello_accesso_display()}")
-        print(f"   Negozio principale: {dirigente2.negozio_principale.nome}")
-        print(f"   Negozi supervisionati: {dirigente2.negozi_supervisionati.count()}")
+        # Il vice direttore ha accesso a tutti i negozi
+        dirigente2.negozi_supervisionati.set(negozi.all())
+        print(f"   - Negozi supervisionati: {dirigente2.negozi_supervisionati.count()}")
         
     except Exception as e:
         print(f"❌ ERRORE creazione vice direttore: {e}")
-        import traceback
-        traceback.print_exc()
     
-    # Dirigente 3 - Direttore di Negozio (Bologna)
-    if bologna:
-        print("\n🏪 Creazione Direttore Negozio Bologna...")
+    # Dirigente 3 - Manager di Area (se ci sono più negozi)
+    if negozi.count() > 1:
+        print("\n👔 Creazione Manager di Area...")
         try:
-            if User.objects.filter(username='marco.rossi.dir').exists():
-                print("🗑️ Rimuovo utente esistente: marco.rossi.dir")
-                User.objects.filter(username='marco.rossi.dir').delete()
+            if User.objects.filter(username='giulia.bianchi').exists():
+                print("🗑️ Rimuovo utente esistente: giulia.bianchi")
+                User.objects.filter(username='giulia.bianchi').delete()
             
             user3 = User.objects.create_user(
-                username='marco.rossi.dir',
-                email='marco.rossi.dir@blowsquared.com',
+                username='giulia.bianchi',
+                email='giulia.bianchi@blowsquared.com',
                 password='password123',
-                first_name='Marco',
-                last_name='Rossi'
+                first_name='Giulia',
+                last_name='Bianchi'
             )
-            print(f"✅ Utente creato: {user3.username} - Email: {user3.email}")
+            print(f"✅ Utente creato: {user3.username}")
+            
+            # Usa il secondo negozio come principale
+            secondo_negozio = negozi.all()[1]
             
             dirigente3 = Dirigente.objects.create(
                 user=user3,
-                nome='Marco',
-                cognome='Rossi',
-                eta=42,
-                telefono='051-9876543',
-                indirizzo='Via Indipendenza 321, Bologna',
-                data_nascita=date(1981, 11, 8),
-                livello_accesso='direttore_negozio',
-                negozio_principale=bologna,
-                data_assunzione=date(2018, 3, 15),
-                stipendio_base=40000.00,
-                note_direzione='Direttore del negozio di Bologna, responsabile delle performance locali.'
-            )
-            
-            # Non aggiungiamo negozi supervisionati per un direttore di negozio
-            
-            print(f"✅ Dirigente creato: {dirigente3.nome} {dirigente3.cognome} - {dirigente3.get_livello_accesso_display()}")
-            print(f"   Negozio principale: {dirigente3.negozio_principale.nome}")
-            
-        except Exception as e:
-            print(f"❌ ERRORE creazione direttore negozio: {e}")
-            import traceback
-            traceback.print_exc()
-    
-    # Dirigente 4 - Manager di Area (se ci sono abbastanza negozi)
-    if negozi.count() >= 2:
-        print("\n🌍 Creazione Manager di Area...")
-        try:
-            if User.objects.filter(username='laura.ferrari').exists():
-                print("🗑️ Rimuovo utente esistente: laura.ferrari")
-                User.objects.filter(username='laura.ferrari').delete()
-            
-            user4 = User.objects.create_user(
-                username='laura.ferrari',
-                email='laura.ferrari@blowsquared.com',
-                password='password123',
-                first_name='Laura',
-                last_name='Ferrari'
-            )
-            print(f"✅ Utente creato: {user4.username} - Email: {user4.email}")
-            
-            dirigente4 = Dirigente.objects.create(
-                user=user4,
-                nome='Laura',
-                cognome='Ferrari',
+                nome='Giulia',
+                cognome='Bianchi',
                 eta=35,
-                telefono='0541-654321',
-                indirizzo='Via Mare 12, Rimini',
-                data_nascita=date(1988, 4, 18),
+                telefono='059-1234567',
+                indirizzo='Via Emilia 89, Modena',
+                data_nascita=date(1988, 11, 8),
                 livello_accesso='manager_area',
-                negozio_principale=rimini if rimini else negozi.last(),
-                data_assunzione=date(2020, 6, 1),
-                stipendio_base=35000.00,
-                note_direzione='Manager di Area responsabile della zona Emilia-Romagna.'
+                negozio_principale=secondo_negozio,
+                data_assunzione=date(2018, 6, 15),
+                stipendio_base=42000.00,
+                note_direzione='Manager di Area responsabile per la zona Nord.'
             )
+            print(f"✅ Dirigente creato: {dirigente3.nome_completo}")
             
-            # Manager di area supervisiona alcuni negozi (escludendo il principale)
-            if modena:
-                dirigente4.negozi_supervisionati.add(modena)
-            
-            print(f"✅ Dirigente creato: {dirigente4.nome} {dirigente4.cognome} - {dirigente4.get_livello_accesso_display()}")
-            print(f"   Negozio principale: {dirigente4.negozio_principale.nome}")
-            print(f"   Negozi supervisionati: {dirigente4.negozi_supervisionati.count()}")
+            # Il manager di area supervisiona alcuni negozi
+            dirigente3.negozi_supervisionati.add(secondo_negozio)
+            if negozi.count() > 2:
+                dirigente3.negozi_supervisionati.add(negozi.all()[2])
+            print(f"   - Negozi supervisionati: {dirigente3.negozi_supervisionati.count()}")
             
         except Exception as e:
             print(f"❌ ERRORE creazione manager di area: {e}")
-            import traceback
-            traceback.print_exc()
     
     print("\n🎉 === CREAZIONE DIRIGENTI COMPLETATA ===")
     print("\n📋 CREDENZIALI PER IL TEST:")
@@ -220,37 +200,37 @@ def crea_dirigenti():
     print("   Accesso: TUTTI I NEGOZI")
     print()
     print("🏢 Vice Direttore:")
-    print("   Username: sofia.bianchi")
-    print("   Email: sofia.bianchi@blowsquared.com")
+    print("   Username: marco.rossi")
+    print("   Email: marco.rossi@blowsquared.com")
     print("   Password: password123")
     print("   Accesso: TUTTI I NEGOZI")
-    print()
-    print("🏪 Direttore Negozio (Bologna):")
-    print("   Username: marco.rossi.dir")
-    print("   Email: marco.rossi.dir@blowsquared.com")
-    print("   Password: password123")
-    print("   Accesso: SOLO NEGOZIO BOLOGNA")
-    print()
-    print("🌍 Manager di Area:")
-    print("   Username: laura.ferrari")
-    print("   Email: laura.ferrari@blowsquared.com")
-    print("   Password: password123")
-    print("   Accesso: NEGOZI AREA EMILIA-ROMAGNA")
+    if negozi.count() > 1:
+        print()
+        print("🏢 Manager di Area:")
+        print("   Username: giulia.bianchi")
+        print("   Email: giulia.bianchi@blowsquared.com")
+        print("   Password: password123")
+        print("   Accesso: NEGOZI ASSEGNATI")
     print("=" * 60)
-    print(f"\n💡 Vai su: http://127.0.0.1:8000/dirigenti/login/ per testare l'accesso")
+    print(f"\n💡 Vai su: http://127.0.0.1:8000/dirigenti/login/")
     
-    # Verifica finale con stampa dettagliata
-    print("\n🔍 VERIFICA FINALE:")
+    # Verifica finale dettagliata
+    print("\n🔍 VERIFICA FINALE DETTAGLIATA:")
     dirigenti_creati = Dirigente.objects.all()
+    print(f"Dirigenti totali nel database: {dirigenti_creati.count()}")
+    
     for d in dirigenti_creati:
-        print(f"✅ {d.nome} {d.cognome} ({d.get_livello_accesso_display()})")
+        print(f"✅ {d.nome_completo}")
         print(f"   - Username: {d.user.username}")
         print(f"   - Email: {d.user.email}")
-        print(f"   - Negozio principale: {d.negozio_principale.nome}")
-        print(f"   - Negozi gestiti: {d.numero_negozi_gestiti}")
-        print(f"   - Può gestire dipendenti: {'Sì' if d.can_manage_dipendenti() else 'No'}")
-        print(f"   - Può vedere finanze: {'Sì' if d.can_view_financials() else 'No'}")
+        print(f"   - User ID: {d.user.id}")
+        print(f"   - Dirigente ID: {d.id}")
+        print(f"   - Is Active: {d.user.is_active}")
+        print(f"   - Password Set: {'Sì' if d.user.password else 'No'}")
         print()
 
 if __name__ == "__main__":
     crea_dirigenti()
+
+# Esegui automaticamente
+crea_dirigenti()

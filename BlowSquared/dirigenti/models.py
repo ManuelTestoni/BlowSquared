@@ -24,7 +24,7 @@ class Dirigente(models.Model):
         default='direttore_negozio'
     )
     
-    # SOLUZIONE SEMPLICE: Usa related_name univoci
+    # CORREZIONE: related_name univoci per evitare conflitti
     negozio_principale = models.ForeignKey(
         'negozi.Negozio',
         on_delete=models.CASCADE,

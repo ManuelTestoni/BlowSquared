@@ -11,11 +11,15 @@ from django.db import models
 def dashboard_dipendente(request):
     dipendente = get_object_or_404(Dipendente, user=request.user)
     
-    # QUERY PULITA - Prodotti per negozio specifico
-    prodotti = Prodotto.objects.filter(
-        models.Q(negozi=dipendente.negozio) |  # Prodotti specifici per questo negozio
-        models.Q(negozi__isnull=True)          # Prodotti senza negozi associati (comuni)
-    ).distinct().order_by('nome')
+    # QUERY CORRETTA - Prodotti per negozio specifico
+    # Metodo 1: Prodotti specifici del negozio
+    prodotti_negozio = Prodotto.objects.filter(negozi=dipendente.negozio)
+    
+    # Metodo 2: Prodotti senza negozi associati (prodotti comuni)
+    prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
+    
+    # Unione dei due QuerySet
+    prodotti = (prodotti_negozio | prodotti_comuni).distinct().order_by('nome')
     
     return render(request, 'dipendenti/dashboard.html', {
         'prodotti': prodotti, 
@@ -47,11 +51,10 @@ def aggiungi_prodotto(request):
 def aggiorna_quantita(request, prodotto_id):
     dipendente = get_object_or_404(Dipendente, user=request.user)
     
-    # NUOVA LOGICA: Verifica usando il campo ManyToMany
-    prodotti_accessibili = Prodotto.objects.filter(
-        models.Q(negozi=dipendente.negozio) | 
-        models.Q(negozi__isnull=True)
-    ).distinct()
+    # LOGICA CORRETTA: Verifica usando il campo ManyToMany
+    prodotti_negozio = Prodotto.objects.filter(negozi=dipendente.negozio)
+    prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
+    prodotti_accessibili = (prodotti_negozio | prodotti_comuni).distinct()
     
     prodotto = get_object_or_404(prodotti_accessibili, id=prodotto_id)
     

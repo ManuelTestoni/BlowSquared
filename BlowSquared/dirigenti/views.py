@@ -20,26 +20,59 @@ def login_dirigente(request):
         email_or_username = request.POST.get('email')
         password = request.POST.get('password')
         
+        # DEBUG: Stampa cosa stiamo cercando
+        print(f"🔍 LOGIN DIRIGENTE DEBUG:")
+        print(f"   Input ricevuto: '{email_or_username}' / password: {'*' * len(password) if password else 'VUOTA'}")
+        
+        # Verifica se l'utente esiste
+        from django.contrib.auth.models import User
+        try:
+            user_by_username = User.objects.get(username=email_or_username)
+            print(f"   ✅ Utente trovato per username: {user_by_username.username}")
+            print(f"   📧 Email utente: {user_by_username.email}")
+            print(f"   🔐 Ha password: {'Sì' if user_by_username.password else 'No'}")
+        except User.DoesNotExist:
+            print(f"   ❌ Nessun utente trovato per username: '{email_or_username}'")
+            user_by_username = None
+        
+        try:
+            user_by_email = User.objects.get(email=email_or_username)
+            print(f"   ✅ Utente trovato per email: {user_by_email.username}")
+        except User.DoesNotExist:
+            print(f"   ❌ Nessun utente trovato per email: '{email_or_username}'")
+            user_by_email = None
+        
+        # Mostra tutti gli utenti dirigenti esistenti
+        print(f"\n   📋 DIRIGENTI NEL DATABASE:")
+        from .models import Dirigente
+        dirigenti = Dirigente.objects.all()
+        for d in dirigenti:
+            print(f"      - {d.user.username} ({d.user.email}) - {d.nome} {d.cognome}")
+            print(f"        Password hash: {d.user.password[:20]}...")
+        
         # Prova prima con username diretto
         user = authenticate(request, username=email_or_username, password=password)
+        print(f"   🔑 Authenticate con username: {'✅ Successo' if user else '❌ Fallito'}")
         
         # Se non funziona, prova a cercare l'utente per email e usa il suo username
-        if user is None:
-            try:
-                from django.contrib.auth.models import User
-                user_obj = User.objects.get(email=email_or_username)
-                user = authenticate(request, username=user_obj.username, password=password)
-            except User.DoesNotExist:
-                pass
+        if user is None and user_by_email:
+            user = authenticate(request, username=user_by_email.username, password=password)
+            print(f"   🔑 Authenticate con email->username: {'✅ Successo' if user else '❌ Fallito'}")
         
         if user is not None:
+            print(f"   👤 Utente autenticato: {user.username}")
+            
+            # Verifica se ha il profilo dirigente
             if hasattr(user, 'dirigente'):
+                print(f"   👔 Profilo dirigente trovato: {user.dirigente.nome} {user.dirigente.cognome}")
                 login(request, user)
                 messages.success(request, f'Benvenuto, {user.dirigente.nome_completo}!')
                 return redirect('dirigenti:dashboard')
             else:
+                print(f"   ❌ Utente {user.username} NON ha profilo dirigente")
                 error = "Questo utente non è un dirigente."
         else:
+            print(f"   ❌ Autenticazione fallita per '{email_or_username}'")
             error = "Credenziali non valide."
     
     return render(request, 'dirigenti/login.html', {'error': error})
