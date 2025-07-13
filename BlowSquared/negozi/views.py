@@ -14,7 +14,7 @@ def lista_negozi(request):
     context = {
         'negozi': negozi,
     }
-    return render(request, 'negozi/lista_negozi.html', context)
+    return render(request, 'negozi/seleziona_negozio.html', context)
 
 def seleziona_negozio(request):
     """Vista per la selezione del negozio preferito"""

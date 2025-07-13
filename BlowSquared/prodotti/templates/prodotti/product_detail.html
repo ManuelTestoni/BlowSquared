@@ -138,11 +138,6 @@
                 Aggiungi al Carrello
               {% endif %}
             </button>
-            
-            <button class="btn-add-to-list">
-              <span class="btn-icon">📝</span>
-              Aggiungi alla Lista
-            </button>
           </div>
           
           <a href="{% url 'prodotti:list' %}" class="btn-back-to-products">Torna ai prodotti</a>
@@ -173,7 +168,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/product-detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/prodotti.css' %}">
 {% endblock %}
 
 {% block extra_js %}

@@ -387,6 +387,57 @@
   color: #721c24;
 }
 
+/* ===== PERSONALIZZAZIONI TEMA DIRIGENTI ===== */
+
+/* Tema dorato per dirigenti */
+.dirigenti-theme .login-header {
+  background: linear-gradient(135deg, #1e3a2e 0%, #2d4a3a 50%, #3e5a47 100%);
+}
+
+.dirigenti-theme .login-title {
+  color: #deae52;
+  text-shadow: 0 2px 10px rgba(222, 174, 82, 0.3);
+}
+
+.dirigenti-theme .logo-icon {
+  background: linear-gradient(135deg, #deae52 0%, #f4c430 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 4px 8px rgba(222, 174, 82, 0.3));
+}
+
+.dirigenti-theme .styled-input:focus {
+  border-color: #deae52;
+  box-shadow: 0 0 0 4px rgba(222, 174, 82, 0.1);
+}
+
+.dirigenti-theme .styled-input:focus + .floating-label,
+.dirigenti-theme .styled-input:not(:placeholder-shown) + .floating-label {
+  color: #deae52;
+}
+
+.dirigenti-theme .input-icon {
+  color: #deae52;
+}
+
+.dirigenti-theme .login-btn {
+  background: linear-gradient(135deg, #deae52 0%, #c19940 100%);
+  box-shadow: 0 8px 25px rgba(222, 174, 82, 0.3);
+}
+
+.dirigenti-theme .login-btn:hover {
+  box-shadow: 0 15px 35px rgba(222, 174, 82, 0.4);
+}
+
+.dirigenti-theme .notice-title {
+  color: #deae52;
+}
+
+.dirigenti-theme .notice-list li::before {
+  color: #deae52;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .charts-section {

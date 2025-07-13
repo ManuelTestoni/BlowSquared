@@ -51,116 +51,158 @@
     <form method="post" class="quantity-form">
       {% csrf_token %}
       
-      <!-- Operazioni Rapide -->
-      <div class="quick-actions-section">
-        <h3 class="section-title">
-          <span class="section-icon">⚡</span>
-          Azioni Rapide
-        </h3>
-        <div class="quick-actions-grid">
-          <button type="button" class="quick-btn" onclick="setOperation('aumenta', 1)">
-            <span class="btn-icon">➕</span>
-            +1
-          </button>
-          <button type="button" class="quick-btn" onclick="setOperation('aumenta', 5)">
-            <span class="btn-icon">➕</span>
-            +5
-          </button>
-          <button type="button" class="quick-btn" onclick="setOperation('aumenta', 10)">
-            <span class="btn-icon">➕</span>
-            +10
-          </button>
-          <button type="button" class="quick-btn danger" onclick="setOperation('diminuisci', 1)">
-            <span class="btn-icon">➖</span>
-            -1
-          </button>
-          <button type="button" class="quick-btn danger" onclick="setOperation('diminuisci', 5)">
-            <span class="btn-icon">➖</span>
-            -5
-          </button>
-          <button type="button" class="quick-btn danger" onclick="setOperation('diminuisci', 10)">
-            <span class="btn-icon">➖</span>
-            -10
-          </button>
-        </div>
-      </div>
-
-      <!-- Operazioni Personalizzate -->
-      <div class="custom-operations-section">
-        <h3 class="section-title">
-          <span class="section-icon">🎯</span>
-          Operazioni Personalizzate
-        </h3>
-        
-        <div class="operation-tabs">
-          <input type="radio" name="operazione" value="aumenta" id="op-aumenta" checked>
-          <label for="op-aumenta" class="tab-label">
-            <span class="tab-icon">➕</span>
-            Aggiungi
-          </label>
+      <!-- Sezione Principale - Layout Migliorato -->
+      <div class="stock-management-container">
+        <div class="stock-management-grid">
           
-          <input type="radio" name="operazione" value="diminuisci" id="op-diminuisci">
-          <label for="op-diminuisci" class="tab-label">
-            <span class="tab-icon">➖</span>
-            Rimuovi
-          </label>
-          
-          <input type="radio" name="operazione" value="imposta" id="op-imposta">
-          <label for="op-imposta" class="tab-label">
-            <span class="tab-icon">🎯</span>
-            Imposta
-          </label>
-        </div>
+          <!-- Colonna Sinistra: Operazioni -->
+          <div class="operations-column">
+            <div class="operations-card">
+              <h3 class="card-title">
+                <span class="title-icon">⚡</span>
+                Tipo di Operazione
+              </h3>
+              
+              <div class="operation-selector">
+                <div class="operation-option">
+                  <input type="radio" name="operazione" value="aumenta" id="op-aumenta" checked>
+                  <label for="op-aumenta" class="operation-label add">
+                    <div class="operation-icon">➕</div>
+                    <div class="operation-info">
+                      <span class="operation-title">Aggiungi</span>
+                      <span class="operation-desc">Aumenta le scorte</span>
+                    </div>
+                  </label>
+                </div>
+                
+                <div class="operation-option">
+                  <input type="radio" name="operazione" value="diminuisci" id="op-diminuisci">
+                  <label for="op-diminuisci" class="operation-label remove">
+                    <div class="operation-icon">➖</div>
+                    <div class="operation-info">
+                      <span class="operation-title">Rimuovi</span>
+                      <span class="operation-desc">Riduci le scorte</span>
+                    </div>
+                  </label>
+                </div>
+                
+                <div class="operation-option">
+                  <input type="radio" name="operazione" value="imposta" id="op-imposta">
+                  <label for="op-imposta" class="operation-label set">
+                    <div class="operation-icon">🎯</div>
+                    <div class="operation-info">
+                      <span class="operation-title">Imposta</span>
+                      <span class="operation-desc">Valore assoluto</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
 
-        <div class="quantity-input-section">
-          <div class="input-group">
-            <label for="quantita" class="input-label">Quantità:</label>
-            <div class="quantity-controls">
-              <button type="button" class="qty-btn" onclick="changeQuantity(-1)">-</button>
-              <input type="number" 
-                     name="quantita" 
-                     id="quantita" 
-                     value="1" 
-                     min="0" 
-                     max="100" 
-                     class="styled-input quantity-input">
-              <button type="button" class="qty-btn" onclick="changeQuantity(1)">+</button>
+            <!-- Azioni Rapide -->
+            <div class="quick-actions-card">
+              <h4 class="card-subtitle">Azioni Rapide</h4>
+              <div class="quick-buttons-grid">
+                <button type="button" class="quick-action-btn add" onclick="setQuickOperation('aumenta', 1)">+1</button>
+                <button type="button" class="quick-action-btn add" onclick="setQuickOperation('aumenta', 5)">+5</button>
+                <button type="button" class="quick-action-btn add" onclick="setQuickOperation('aumenta', 10)">+10</button>
+                <button type="button" class="quick-action-btn remove" onclick="setQuickOperation('diminuisci', 1)">-1</button>
+                <button type="button" class="quick-action-btn remove" onclick="setQuickOperation('diminuisci', 5)">-5</button>
+                <button type="button" class="quick-action-btn remove" onclick="setQuickOperation('diminuisci', 10)">-10</button>
+              </div>
             </div>
           </div>
-          
-          <div class="operation-preview">
-            <div class="preview-calculation">
-              <span class="current">{{ prodotto.stock }}</span>
-              <span class="operator" id="operator">+</span>
-              <span class="amount" id="amount">1</span>
-              <span class="equals">=</span>
-              <span class="result" id="result">{{ prodotto.stock|add:1 }}</span>
-            </div>
-            <div class="preview-label">Stock previsto dopo l'operazione</div>
-          </div>
 
-          <div class="validation-info">
-            <div class="info-item">
+          <!-- Colonna Destra: Quantità e Preview -->
+          <div class="quantity-column">
+            <div class="quantity-card">
+              <h3 class="card-title">
+                <span class="title-icon">🔢</span>
+                Quantità
+              </h3>
+              
+              <div class="quantity-input-group">
+                <label for="quantita" class="quantity-label">Inserisci quantità:</label>
+                <div class="quantity-controls-modern">
+                  <button type="button" class="qty-control-btn minus" onclick="changeQuantity(-1)">
+                    <span>−</span>
+                  </button>
+                  <input type="number" 
+                         name="quantita" 
+                         id="quantita" 
+                         value="1" 
+                         min="0" 
+                         max="100" 
+                         class="quantity-input-modern">
+                  <button type="button" class="qty-control-btn plus" onclick="changeQuantity(1)">
+                    <span>+</span>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Preview del Risultato -->
+              <div class="result-preview">
+                <div class="preview-header">
+                  <span class="preview-icon">🎯</span>
+                  <span>Risultato Operazione</span>
+                </div>
+                <div class="calculation-display">
+                  <div class="calc-current">
+                    <span class="calc-label">Stock Attuale</span>
+                    <span class="calc-value current">{{ prodotto.stock }}</span>
+                  </div>
+                  <div class="calc-operator">
+                    <span class="operator-symbol" id="operator-display">+</span>
+                  </div>
+                  <div class="calc-amount">
+                    <span class="calc-label">Quantità</span>
+                    <span class="calc-value amount" id="amount-display">1</span>
+                  </div>
+                  <div class="calc-equals">=</div>
+                  <div class="calc-result">
+                    <span class="calc-label">Nuovo Stock</span>
+                    <span class="calc-value result" id="result-display">{{ prodotto.stock|add:1 }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informazioni e Vincoli -->
+        <div class="constraints-info">
+          <div class="info-card">
+            <div class="info-header">
               <span class="info-icon">ℹ️</span>
-              Quantità massima per operazione: 100
+              <span>Informazioni Importanti</span>
             </div>
-            <div class="info-item">
-              <span class="info-icon">⚠️</span>
-              Lo stock non può scendere sotto 0
+            <div class="info-list">
+              <div class="info-point">
+                <span class="point-icon">📊</span>
+                <span>Quantità massima per operazione: <strong>100</strong></span>
+              </div>
+              <div class="info-point">
+                <span class="point-icon">⚠️</span>
+                <span>Lo stock non può scendere sotto <strong>0</strong></span>
+              </div>
+              <div class="info-point">
+                <span class="point-icon">💡</span>
+                <span>Usa le azioni rapide per operazioni comuni</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Pulsanti Azione -->
-      <div class="form-actions">
-        <button type="submit" class="btn btn-success">
+      <div class="form-actions-modern">
+        <button type="submit" class="btn-action primary">
           <span class="btn-icon">💾</span>
-          Aggiorna Stock
+          <span class="btn-text">Aggiorna Stock</span>
         </button>
-        <a href="{% url 'dipendenti:dashboard' %}" class="btn btn-secondary">
-          <span class="btn-icon">❌</span>
-          Annulla
+        <a href="{% url 'dipendenti:dashboard' %}" class="btn-action secondary">
+          <span class="btn-icon">↩️</span>
+          <span class="btn-text">Torna alla Dashboard</span>
         </a>
       </div>
     </form>
@@ -170,7 +212,7 @@
 <script>
 const currentStock = {{ prodotto.stock }};
 
-function setOperation(operation, quantity) {
+function setQuickOperation(operation, quantity) {
   // Imposta l'operazione
   document.querySelector(`input[name="operazione"][value="${operation}"]`).checked = true;
   
@@ -179,6 +221,11 @@ function setOperation(operation, quantity) {
   
   // Aggiorna il preview
   updatePreview();
+  
+  // Feedback visivo
+  const operationLabels = document.querySelectorAll('.operation-label');
+  operationLabels.forEach(label => label.classList.remove('selected'));
+  document.querySelector(`label[for="op-${operation}"]`).classList.add('selected');
 }
 
 function changeQuantity(delta) {
@@ -193,11 +240,38 @@ function updatePreview() {
   const operation = document.querySelector('input[name="operazione"]:checked').value;
   const quantity = parseInt(document.getElementById('quantita').value) || 0;
   
-  const operatorSpan = document.getElementById('operator');
-  const amountSpan = document.getElementById('amount');
-  const resultSpan = document.getElementById('result');
+  const operatorDisplay = document.getElementById('operator-display');
+  const amountDisplay = document.getElementById('amount-display');
+  const resultDisplay = document.getElementById('result-display');
   
   let newStock;
+  let operatorSymbol;
+  
+  if (operation === 'aumenta') {
+    newStock = currentStock + quantity;
+    operatorSymbol = '+';
+  } else if (operation === 'diminuisci') {
+    newStock = Math.max(0, currentStock - quantity);
+    operatorSymbol = '−';
+  } else { // imposta
+    newStock = quantity;
+    operatorSymbol = '→';
+  }
+  
+  operatorDisplay.textContent = operatorSymbol;
+  amountDisplay.textContent = quantity;
+  resultDisplay.textContent = newStock;
+  
+  // Aggiorna colori del risultato
+  resultDisplay.className = 'calc-value result';
+  if (newStock === 0) {
+    resultDisplay.classList.add('warning');
+  } else if (newStock < 10) {
+    resultDisplay.classList.add('low');
+  } else {
+    resultDisplay.classList.add('good');
+  }
+}
   let operator;
   
   switch(operation) {

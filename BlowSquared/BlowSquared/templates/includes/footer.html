@@ -2,14 +2,14 @@
   <div class="footer-container">
     <div class="footer-section">
       <h3>BlowSquared</h3>
-      <p>Il supermercato digitale che raddoppia il tuo risparmio.</p>
+      <p>Il supermercato digitale che eleva al quadrato il tuo risparmio.</p>
     </div>
     <div class="footer-section">
       <h4>Link Utili</h4>
       <ul>
         <li><a href="{% url 'prodotti:list' %}">Prodotti</a></li>
-        <li><a href="#negozi">Negozi</a></li>
-        <li><a href="#forum">Forum</a></li>
+        <li><a href="{% url 'negozi:seleziona_negozio' %}">Negozi</a></li>
+        <li><a href="{% url 'forum:home' %}">Forum</a></li>
       </ul>
     </div>
     <div class="footer-section">

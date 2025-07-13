@@ -11,7 +11,7 @@ from django.db import models
 def dashboard_dipendente(request):
     dipendente = get_object_or_404(Dipendente, user=request.user)
     
-    # QUERY CORRETTA - Prodotti per negozio specifico
+    # LOGICA UNIFICATA - Prodotti per negozio specifico (condivisa con vista clienti)
     # Metodo 1: Prodotti specifici del negozio
     prodotti_negozio = Prodotto.objects.filter(negozi=dipendente.negozio)
     

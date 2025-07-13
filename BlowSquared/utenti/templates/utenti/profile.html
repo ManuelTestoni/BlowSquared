@@ -40,13 +40,6 @@
         </div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">❤️</div>
-        <div class="stat-info">
-          <span class="stat-number">{{ stats.prodotti_preferiti }}</span>
-          <span class="stat-label">Prodotti Preferiti</span>
-        </div>
-      </div>
-      <div class="stat-card">
         <div class="stat-icon">📝</div>
         <div class="stat-info">
           <span class="stat-number">{{ stats.liste_attive }}</span>
@@ -64,7 +57,6 @@
       <button class="tab-btn active" data-tab="info">Informazioni Personali</button>
       <button class="tab-btn" data-tab="orders">Storico Ordini</button>
       <button class="tab-btn" data-tab="lists">Le Tue Liste</button>
-      <button class="tab-btn" data-tab="settings">Impostazioni</button>
     </div>
 
     <div class="tab-content">
@@ -310,51 +302,6 @@
             </div>
           </div>
           {% endif %}
-        </div>
-      </div>
-
-      <!-- Tab Impostazioni -->
-      <div class="tab-panel" id="settings">
-        <div class="settings-card">
-          <h3 class="card-title">
-            <span class="title-icon">⚙️</span>
-            Impostazioni Account
-          </h3>
-          <div class="settings-options">
-            <div class="setting-item">
-              <div class="setting-info">
-                <h4>Notifiche Email</h4>
-                <p>Ricevi aggiornamenti su offerte e nuovi prodotti</p>
-              </div>
-              <div class="setting-control">
-                <label class="toggle-switch">
-                  <input type="checkbox" checked disabled>
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <h4>Privacy Dati</h4>
-                <p>Gestisci la privacy dei tuoi dati personali</p>
-              </div>
-              <div class="setting-control">
-                <button class="setting-btn" disabled>Gestisci Privacy</button>
-              </div>
-            </div>
-            <div class="setting-item">
-              <div class="setting-info">
-                <h4>Elimina Account</h4>
-                <p>Rimuovi permanentemente il tuo account</p>
-              </div>
-              <div class="setting-control">
-                <button class="setting-btn danger" disabled>Elimina Account</button>
-              </div>
-            </div>
-          </div>
-          <div class="settings-note">
-            <p>⚠️ Le impostazioni avanzate saranno disponibili prossimamente</p>
-          </div>
         </div>
       </div>
     </div>

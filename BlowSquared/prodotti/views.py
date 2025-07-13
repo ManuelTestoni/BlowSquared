@@ -8,28 +8,25 @@ from decimal import Decimal
 def list(request):
     """Vista per la lista di tutti i prodotti con filtri e ricerca"""
     
-    # CONTROLLO OBBLIGATORIO: Solo utenti autenticati con negozio selezionato possono vedere i prodotti
-    if not request.user.is_authenticated:
-        messages.info(request, 'Devi essere registrato e aver selezionato un negozio per vedere i prodotti disponibili.')
-        return redirect('utenti:signup')
-    
+    # Per gli utenti autenticati, filtra per negozio preferito
     try:
         profilo = request.user.profilo
         if not profilo.negozio_preferito:
-            messages.info(request, 'Seleziona prima il tuo negozio preferito per vedere i prodotti disponibili.')
+            messages.info(request, 'Seleziona un negozio per vedere i prodotti disponibili.')
             return redirect('negozi:seleziona_negozio')
         
-        # Filtra prodotti in base al negozio selezionato
+        # Filtra prodotti in base al negozio selezionato - LOGICA UNIFICATA
         negozio_preferito = profilo.negozio_preferito
         
-        # Recupera solo i prodotti disponibili nel negozio selezionato
-        from negozi.models import DisponibilitaProdotto
-        prodotti_disponibili = DisponibilitaProdotto.objects.filter(
-            negozio=negozio_preferito,
-            quantita_disponibile__gt=0
-        ).values_list('prodotto_id', flat=True)
+        # METODO UNIFICATO: Usa la stessa logica della vista dipendenti
+        # Metodo 1: Prodotti specifici del negozio
+        prodotti_negozio = Prodotto.objects.filter(negozi=negozio_preferito)
         
-        prodotti = Prodotto.objects.filter(id__in=prodotti_disponibili)
+        # Metodo 2: Prodotti senza negozi associati (prodotti comuni)
+        prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
+        
+        # Unione dei due QuerySet - solo prodotti con stock > 0
+        prodotti = (prodotti_negozio | prodotti_comuni).filter(stock__gt=0).distinct()
         
     except Exception as e:
         # Se non ha un profilo o ci sono errori, redirigi alla selezione negozio
@@ -80,12 +77,7 @@ def list(request):
     if ordine in ordini_validi:
         prodotti = prodotti.order_by(ordini_validi[ordine])
     
-    # Aggiungi prezzo scontato per ogni prodotto
-    for prodotto in prodotti:
-        if prodotto.sconto > 0:
-            prodotto.prezzo_scontato = prodotto.prezzo * (100 - prodotto.sconto) / 100
-        else:
-            prodotto.prezzo_scontato = prodotto.prezzo
+    # Il prezzo scontato è già disponibile come proprietà del modello
     
     # Se è una richiesta AJAX, restituisci JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -128,77 +120,46 @@ def list(request):
     
     return render(request, 'prodotti/prodotti_list.html', context)
 
+
 def detail(request, product_id):
     """Vista per il dettaglio di un singolo prodotto"""
-    
-    # STESSO CONTROLLO: Solo utenti autenticati con negozio possono vedere i dettagli
-    if not request.user.is_authenticated:
-        messages.info(request, 'Devi essere registrato e aver selezionato un negozio per vedere i dettagli dei prodotti.')
-        return redirect('utenti:signup')
-    
-    try:
-        profilo = request.user.profilo
-        if not profilo.negozio_preferito:
-            messages.info(request, 'Seleziona prima il tuo negozio preferito.')
-            return redirect('negozi:seleziona_negozio')
-    except:
-        messages.info(request, 'Completa il tuo profilo selezionando un negozio.')
-        return redirect('negozi:seleziona_negozio')
-    
-    # Recupera il prodotto specifico o restituisce 404
     prodotto = get_object_or_404(Prodotto, id=product_id)
     
-    # Verifica che il prodotto sia disponibile nel negozio dell'utente
-    from negozi.models import DisponibilitaProdotto
-    try:
-        disponibilita = DisponibilitaProdotto.objects.get(
-            prodotto=prodotto,
-            negozio=profilo.negozio_preferito
-        )
-        if disponibilita.quantita_disponibile <= 0:
-            messages.warning(request, f'Il prodotto "{prodotto.nome}" non è attualmente disponibile nel tuo negozio.')
-            return redirect('prodotti:list')
-    except DisponibilitaProdotto.DoesNotExist:
-        messages.warning(request, f'Il prodotto "{prodotto.nome}" non è disponibile nel tuo negozio.')
-        return redirect('prodotti:list')
+    # Il prezzo scontato è già disponibile come proprietà del modello
     
-    # Calcola prezzo scontato e risparmio se presente
-    if prodotto.sconto > 0:
-        prodotto.prezzo_scontato = prodotto.prezzo * (100 - prodotto.sconto) / 100
-        prodotto.risparmio = prodotto.prezzo - prodotto.prezzo_scontato
-    else:
-        prodotto.prezzo_scontato = prodotto.prezzo
-        prodotto.risparmio = 0
-    
-    # Per il futuro sistema di raccomandazioni - ora vuoto
-    prodotti_raccomandati = []
+    # Verifica se l'utente può vedere questo prodotto nel suo negozio - LOGICA UNIFICATA
+    if request.user.is_authenticated:
+        try:
+            profilo = request.user.profilo
+            if profilo.negozio_preferito:
+                negozio_preferito = profilo.negozio_preferito
+                
+                # CONTROLLO UNIFICATO: Verifica se il prodotto è associato al negozio
+                prodotto_disponibile = (
+                    # Prodotto specifico del negozio
+                    prodotto.negozi.filter(id=negozio_preferito.id).exists() or
+                    # Prodotto comune (senza negozi associati)
+                    not prodotto.negozi.exists()
+                )
+                
+                if not prodotto_disponibile:
+                    messages.warning(request, 'Questo prodotto non è disponibile nel tuo negozio.')
+                elif prodotto.stock <= 0:
+                    messages.warning(request, 'Questo prodotto non è attualmente disponibile (esaurito).')
+        except:
+            pass
     
     context = {
-        'prodotto': prodotto,
-        'prodotti_raccomandati': prodotti_raccomandati,
-        'disponibilita': disponibilita,
+        'prodotto': prodotto
     }
     
     return render(request, 'prodotti/product_detail.html', context)
 
+
 def list_prodotti(request):
-    # Verifica che l'utente abbia selezionato un negozio
-    negozio_selezionato = None
-    if request.user.is_authenticated:
-        try:
-            negozio_selezionato = request.user.profilo.negozio_preferito
-        except:
-            pass
-    
-    if not negozio_selezionato:
-        messages.warning(request, 'Seleziona un negozio per vedere i prodotti disponibili.')
-        return redirect('negozi:seleziona_negozio')
-    
-    # NUOVA LOGICA: Filtra prodotti per negozio selezionato
-    prodotti = Prodotto.objects.filter(
-        models.Q(negozi=negozio_selezionato) |  # Prodotti specifici del negozio
-        models.Q(negozi__isnull=True)           # Prodotti comuni a tutti
-    ).distinct()
+    """Vista alternativa per lista prodotti senza autenticazione richiesta"""
+    # Ottieni tutti i prodotti
+    prodotti = Prodotto.objects.all()
     
     # Filtri dalla query string
     search_query = request.GET.get('search', '')
@@ -244,12 +205,7 @@ def list_prodotti(request):
     if ordine in ordini_validi:
         prodotti = prodotti.order_by(ordini_validi[ordine])
     
-    # Aggiungi prezzo scontato per ogni prodotto
-    for prodotto in prodotti:
-        if prodotto.sconto > 0:
-            prodotto.prezzo_scontato = prodotto.prezzo * (100 - prodotto.sconto) / 100
-        else:
-            prodotto.prezzo_scontato = prodotto.prezzo
+    # Il prezzo scontato è già disponibile come proprietà del modello
     
     # Se è una richiesta AJAX, restituisci JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

@@ -1,62 +1,70 @@
 {% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Accesso Dirigenti - BlowSquared{% endblock %}
-
+{% block title %}Accesso Dirigenti{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dipendenti.css' %}">
+<link rel="stylesheet" href="{% static 'css/dirigenti.css' %}">
+{% endblock %}
+{% block content %}
+<section class="dipendenti-login-section dirigenti-theme">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="company-logo">
+          <span class="logo-icon">👨‍💼</span>
+        </div>
+        <h2 class="login-title">Accesso Dirigenti</h2>
+        <p class="login-subtitle">Area riservata alla direzione aziendale</p>
+      </div>
+      
+      <form method="post" class="dipendenti-login-form">
+        {% csrf_token %}
+        {% if error %}
+          <div class="error-alert">
+            <span class="error-icon">⚠️</span>
+            <span class="error-message">{{ error }}</span>
+          </div>
+        {% endif %}
+        
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="text" name="email" id="email" class="styled-input" required autofocus placeholder=" ">
+            <label for="email" class="floating-label">Username o Email</label>
+            <span class="input-icon">👤</span>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <div class="input-wrapper">
+            <input type="password" name="password" id="password" class="styled-input" required placeholder=" ">
+            <label for="password" class="floating-label">Password</label>
+            <span class="input-icon">🔒</span>
+          </div>
+        </div>
+        
+        <button type="submit" class="login-btn">
+          <span class="btn-content">
+            <span class="btn-icon">🏢</span>
+            <span class="btn-text">Accedi alla Direzione</span>
+          </span>
+        </button>
+      </form>
+      
+      <div class="login-footer">
+        <div class="security-notice">
+          <h4 class="notice-title">
+            <span class="notice-icon">🛡️</span>
+            Accesso Direzionale
+          </h4>
+          <ul class="notice-list">
+            <li>Accesso riservato al personale dirigenziale</li>
+            <li>Controllo completo su tutte le operazioni aziendali</li>
+            <li>Sessione protetta con crittografia avanzata</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}
 
-{% block content %}
-<div class="login-container">
-  <div class="login-header">
-    <span class="login-icon">👨‍💼</span>
-    <h1 class="login-title">Accesso Dirigenti</h1>
-    <p class="login-subtitle">Area riservata alla direzione</p>
-  </div>
-  
-  <form method="post" class="login-form">
-    {% csrf_token %}
-    
-    {% if error %}
-    <div class="error-message">
-      {{ error }}
-    </div>
-    {% endif %}
-    
-    <div class="form-group">
-      <input type="text" id="email" name="email" placeholder=" " required class="styled-input">
-      <label for="email" class="floating-label">Username o Email</label>
-      <span class="input-icon">👤</span>
-    </div>
-    
-    <div class="form-group">
-      <input type="password" id="password" name="password" placeholder=" " required class="styled-input">
-      <label for="password" class="floating-label">Password</label>
-      <span class="input-icon">🔒</span>
-    </div>
-    
-    <button type="submit" class="login-btn">
-      <span class="btn-content">
-        <span class="btn-icon">🚀</span>
-        Accedi alla Dashboard
-      </span>
-    </button>
-  </form>
-  
-  <div class="login-footer">
-    <div class="security-notice">
-      <h4 class="notice-title">
-        <span class="notice-icon">🔒</span>
-        Accesso Sicuro Direzione
-      </h4>
-      <ul class="notice-list">
-        <li>Accesso riservato esclusivamente al personale dirigenziale</li>
-        <li>Dashboard con analytics avanzate e controllo gestionale</li>
-        <li>Supervisione completa delle operazioni aziendali</li>
-        <li>Gestione strategica negozi e risorse umane</li>
-      </ul>
-    </div>
-  </div>
-</div>
-{% endblock %}
