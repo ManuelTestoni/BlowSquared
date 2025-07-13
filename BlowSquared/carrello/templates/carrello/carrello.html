@@ -53,9 +53,9 @@
             <div class="item-quantity">
               <label class="quantity-label">Quantità:</label>
               <div class="quantity-controls">
-                <button class="quantity-btn quantity-minus" data-action="decrease">-</button>
-                <input type="number" class="quantity-input" value="{{ item.quantita }}" min="1" max="99">
-                <button class="quantity-btn quantity-plus" data-action="increase">+</button>
+                <button class="quantity-btn quantity-minus" data-action="decrease" data-item-id="{{ item.id }}">-</button>
+                <input type="number" class="quantity-input" value="{{ item.quantita }}" min="1" max="99" data-item-id="{{ item.id }}">
+                <button class="quantity-btn quantity-plus" data-action="increase" data-item-id="{{ item.id }}">+</button>
               </div>
             </div>
             

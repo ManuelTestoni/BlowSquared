@@ -2,9 +2,25 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.generic import View
+from functools import wraps
 from .models import Carrello, ElementoCarrello, Ordine, ElementoOrdine
 from prodotti.models import Prodotto
 
+
+def dipendente_non_allowed(view_func):
+    """
+    Decorator che blocca l'accesso ai dipendenti e dirigenti mostrando la pagina 404.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and (hasattr(request.user, 'dipendente') or hasattr(request.user, 'dirigente')):
+            return render(request, '404.html', status=404)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@dipendente_non_allowed
 @login_required
 def visualizza_carrello(request):
     """Vista per visualizzare il contenuto del carrello"""
@@ -74,6 +90,7 @@ def visualizza_carrello(request):
     
     return render(request, 'carrello/carrello.html', context)
 
+@dipendente_non_allowed
 @login_required
 def aggiungi_al_carrello(request, prodotto_id):
     """Vista per aggiungere un prodotto al carrello"""
@@ -95,7 +112,10 @@ def aggiungi_al_carrello(request, prodotto_id):
         
         # Verifica che il prodotto sia disponibile nel negozio dell'utente
         from negozi.models import DisponibilitaProdotto
+        
+        # LOGICA UNIFICATA: Gestisce prodotti specifici del negozio + prodotti comuni
         try:
+            # Prova prima a cercare disponibilità specifica per il negozio
             disponibilita = DisponibilitaProdotto.objects.get(
                 prodotto=prodotto,
                 negozio=profilo.negozio_preferito
@@ -105,11 +125,34 @@ def aggiungi_al_carrello(request, prodotto_id):
                     'success': False, 
                     'message': f'Il prodotto "{prodotto.nome}" non è attualmente disponibile'
                 })
+            stock_disponibile = disponibilita.quantita_disponibile
+            
         except DisponibilitaProdotto.DoesNotExist:
-            return JsonResponse({
-                'success': False, 
-                'message': f'Il prodotto "{prodotto.nome}" non è disponibile nel tuo negozio'
-            })
+            # Verifica se il prodotto è associato al negozio dell'utente
+            if prodotto.negozi.filter(id=profilo.negozio_preferito.id).exists():
+                # È associato al negozio ma manca il record DisponibilitaProdotto
+                # Usa lo stock del prodotto stesso
+                if prodotto.stock <= 0:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Il prodotto "{prodotto.nome}" non è attualmente disponibile'
+                    })
+                stock_disponibile = prodotto.stock
+                
+            elif not prodotto.negozi.exists():
+                # È un prodotto comune - usa lo stock del prodotto stesso
+                if prodotto.stock <= 0:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Il prodotto "{prodotto.nome}" non è attualmente disponibile'
+                    })
+                stock_disponibile = prodotto.stock
+            else:
+                # È un prodotto specifico di altri negozi, non disponibile qui
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'Il prodotto "{prodotto.nome}" non è disponibile nel tuo negozio'
+                })
         
         # Ottieni la quantità dalla richiesta (default 1)
         quantita = int(request.POST.get('quantita', 1))
@@ -117,10 +160,10 @@ def aggiungi_al_carrello(request, prodotto_id):
             return JsonResponse({'success': False, 'message': 'Quantità non valida'})
         
         # Verifica che ci sia abbastanza stock
-        if quantita > disponibilita.quantita_disponibile:
+        if quantita > stock_disponibile:
             return JsonResponse({
                 'success': False, 
-                'message': f'Disponibili solo {disponibilita.quantita_disponibile} pezzi'
+                'message': f'Disponibili solo {stock_disponibile} pezzi'
             })
         
         # Ottieni o crea il carrello
@@ -135,10 +178,10 @@ def aggiungi_al_carrello(request, prodotto_id):
         elemento = carrello.aggiungi_prodotto(prodotto, quantita)
         
         # Verifica di nuovo lo stock dopo l'aggiunta
-        if elemento.quantita > disponibilita.quantita_disponibile:
-            elemento.quantita = disponibilita.quantita_disponibile
+        if elemento.quantita > stock_disponibile:
+            elemento.quantita = stock_disponibile
             elemento.save()
-            messaggio = f'{prodotto.nome} aggiunto (quantità limitata a {disponibilita.quantita_disponibile})'
+            messaggio = f'{prodotto.nome} aggiunto (quantità limitata a {stock_disponibile})'
         else:
             messaggio = f'{prodotto.nome} aggiunto al carrello'
         
@@ -156,6 +199,7 @@ def aggiungi_al_carrello(request, prodotto_id):
             'message': f'Errore nell\'aggiunta al carrello: {str(e)}'
         })
 
+@dipendente_non_allowed
 @login_required
 def rimuovi_dal_carrello(request, elemento_id):
     """Vista per rimuovere un elemento dal carrello"""
@@ -182,6 +226,7 @@ def rimuovi_dal_carrello(request, elemento_id):
             'message': f'Errore nella rimozione: {str(e)}'
         })
 
+@dipendente_non_allowed
 @login_required
 def aggiorna_quantita_carrello(request, elemento_id):
     """Vista per aggiornare la quantità di un elemento nel carrello"""
@@ -197,9 +242,10 @@ def aggiorna_quantita_carrello(request, elemento_id):
         if nuova_quantita <= 0 or nuova_quantita > 99:
             return JsonResponse({'success': False, 'message': 'Quantità non valida'})
         
-        # Verifica disponibilità
+        # Verifica disponibilità - LOGICA UNIFICATA
         from negozi.models import DisponibilitaProdotto
         try:
+            # Prova prima a cercare disponibilità specifica per il negozio
             disponibilita = DisponibilitaProdotto.objects.get(
                 prodotto=elemento.prodotto,
                 negozio=carrello.negozio
@@ -211,7 +257,25 @@ def aggiorna_quantita_carrello(request, elemento_id):
                     'message': f'Disponibili solo {disponibilita.quantita_disponibile} pezzi'
                 })
         except DisponibilitaProdotto.DoesNotExist:
-            return JsonResponse({'success': False, 'message': 'Prodotto non più disponibile'})
+            # Verifica se il prodotto è associato al negozio dell'utente
+            if elemento.prodotto.negozi.filter(id=carrello.negozio.id).exists():
+                # È associato al negozio ma manca il record DisponibilitaProdotto
+                # Usa lo stock del prodotto stesso
+                if nuova_quantita > elemento.prodotto.stock:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Disponibili solo {elemento.prodotto.stock} pezzi'
+                    })
+            elif not elemento.prodotto.negozi.exists():
+                # È un prodotto comune - usa lo stock del prodotto stesso
+                if nuova_quantita > elemento.prodotto.stock:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Disponibili solo {elemento.prodotto.stock} pezzi'
+                    })
+            else:
+                # È un prodotto specifico di altri negozi, non più disponibile qui
+                return JsonResponse({'success': False, 'message': 'Prodotto non più disponibile'})
         
         elemento.quantita = nuova_quantita
         elemento.save()
@@ -231,16 +295,26 @@ def aggiorna_quantita_carrello(request, elemento_id):
             'message': f'Errore nell\'aggiornamento: {str(e)}'
         })
 
+@dipendente_non_allowed
 @login_required
 def svuota_carrello(request):
     """Vista per svuotare completamente il carrello"""
+    
+    print(f"🔍 SVUOTA CARRELLO DEBUG:")
+    print(f"   Metodo: {request.method}")
+    print(f"   Utente: {request.user.username}")
     
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Metodo non permesso'})
     
     try:
         carrello = Carrello.get_or_create_for_user(request.user)
+        print(f"   Carrello ID: {carrello.id}")
+        print(f"   Elementi prima: {carrello.elementi.count()}")
+        
         carrello.svuota_carrello()
+        
+        print(f"   Elementi dopo: {carrello.elementi.count()}")
         
         return JsonResponse({
             'success': True, 
@@ -249,6 +323,7 @@ def svuota_carrello(request):
         })
         
     except Exception as e:
+        print(f"   ❌ Errore: {str(e)}")
         return JsonResponse({
             'success': False, 
             'message': f'Errore nello svuotamento: {str(e)}'
@@ -270,6 +345,7 @@ def api_cart_count(request):
             'error': str(e)
         })
 
+@dipendente_non_allowed
 @login_required
 def checkout(request):
     """Vista per la pagina di checkout"""
@@ -454,3 +530,108 @@ def ordine_completato(request, codice_ordine):
     except Ordine.DoesNotExist:
         messages.error(request, 'Ordine non trovato')
         return redirect('home')
+
+@dipendente_non_allowed
+@login_required
+def incrementa_quantita(request, elemento_id):
+    """Vista per incrementare la quantità di un elemento nel carrello"""
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Metodo non permesso'})
+    
+    try:
+        carrello = Carrello.get_or_create_for_user(request.user)
+        elemento = get_object_or_404(ElementoCarrello, id=elemento_id, carrello=carrello)
+        
+        nuova_quantita = elemento.quantita + 1
+        
+        # Verifica disponibilità - LOGICA UNIFICATA
+        from negozi.models import DisponibilitaProdotto
+        try:
+            # Prova prima a cercare disponibilità specifica per il negozio
+            disponibilita = DisponibilitaProdotto.objects.get(
+                prodotto=elemento.prodotto,
+                negozio=carrello.negozio
+            )
+            
+            if nuova_quantita > disponibilita.quantita_disponibile:
+                return JsonResponse({
+                    'success': False, 
+                    'message': f'Disponibili solo {disponibilita.quantita_disponibile} pezzi'
+                })
+        except DisponibilitaProdotto.DoesNotExist:
+            # Verifica se il prodotto è associato al negozio dell'utente
+            if elemento.prodotto.negozi.filter(id=carrello.negozio.id).exists():
+                # È associato al negozio ma manca il record DisponibilitaProdotto
+                # Usa lo stock del prodotto stesso
+                if nuova_quantita > elemento.prodotto.stock:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Disponibili solo {elemento.prodotto.stock} pezzi'
+                    })
+            elif not elemento.prodotto.negozi.exists():
+                # È un prodotto comune - usa lo stock del prodotto stesso
+                if nuova_quantita > elemento.prodotto.stock:
+                    return JsonResponse({
+                        'success': False, 
+                        'message': f'Disponibili solo {elemento.prodotto.stock} pezzi'
+                    })
+            else:
+                # È un prodotto specifico di altri negozi, non più disponibile qui
+                return JsonResponse({'success': False, 'message': 'Prodotto non più disponibile'})
+        
+        elemento.quantita = nuova_quantita
+        elemento.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Quantità aumentata',
+            'quantita': elemento.quantita,
+            'carrello_count': carrello.numero_articoli,
+            'elemento_prezzo_totale': float(elemento.prezzo_totale),
+            'carrello_subtotale': float(carrello.subtotale),
+            'carrello_totale': float(carrello.totale_finale)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'message': f'Errore nell\'incremento: {str(e)}'
+        })
+
+@dipendente_non_allowed
+@login_required
+def decrementa_quantita(request, elemento_id):
+    """Vista per decrementare la quantità di un elemento nel carrello"""
+    
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Metodo non permesso'})
+    
+    try:
+        carrello = Carrello.get_or_create_for_user(request.user)
+        elemento = get_object_or_404(ElementoCarrello, id=elemento_id, carrello=carrello)
+        
+        if elemento.quantita <= 1:
+            return JsonResponse({
+                'success': False, 
+                'message': 'La quantità non può essere inferiore a 1'
+            })
+        
+        elemento.quantita -= 1
+        elemento.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Quantità diminuita',
+            'quantita': elemento.quantita,
+            'carrello_count': carrello.numero_articoli,
+            'elemento_prezzo_totale': float(elemento.prezzo_totale),
+            'carrello_subtotale': float(carrello.subtotale),
+            'carrello_totale': float(carrello.totale_finale)
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'message': f'Errore nel decremento: {str(e)}'
+        })

@@ -10,6 +10,8 @@ urlpatterns = [
     path('aggiungi/<int:prodotto_id>/', views.aggiungi_al_carrello, name='aggiungi'),
     path('rimuovi/<int:elemento_id>/', views.rimuovi_dal_carrello, name='rimuovi'),
     path('aggiorna/<int:elemento_id>/', views.aggiorna_quantita_carrello, name='aggiorna_quantita'),
+    path('incrementa/<int:elemento_id>/', views.incrementa_quantita, name='incrementa'),
+    path('decrementa/<int:elemento_id>/', views.decrementa_quantita, name='decrementa'),
     path('svuota/', views.svuota_carrello, name='svuota'),
     path('api/count/', views.api_cart_count, name='api_count'),
 ]

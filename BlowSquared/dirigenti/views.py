@@ -10,6 +10,7 @@ from carrello.models import Ordine
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
+from django.http import JsonResponse
 
 def login_dirigente(request):
     if request.user.is_authenticated and hasattr(request.user, 'dirigente'):
@@ -20,59 +21,27 @@ def login_dirigente(request):
         email_or_username = request.POST.get('email')
         password = request.POST.get('password')
         
-        # DEBUG: Stampa cosa stiamo cercando
-        print(f"🔍 LOGIN DIRIGENTE DEBUG:")
-        print(f"   Input ricevuto: '{email_or_username}' / password: {'*' * len(password) if password else 'VUOTA'}")
-        
-        # Verifica se l'utente esiste
-        from django.contrib.auth.models import User
-        try:
-            user_by_username = User.objects.get(username=email_or_username)
-            print(f"   ✅ Utente trovato per username: {user_by_username.username}")
-            print(f"   📧 Email utente: {user_by_username.email}")
-            print(f"   🔐 Ha password: {'Sì' if user_by_username.password else 'No'}")
-        except User.DoesNotExist:
-            print(f"   ❌ Nessun utente trovato per username: '{email_or_username}'")
-            user_by_username = None
-        
-        try:
-            user_by_email = User.objects.get(email=email_or_username)
-            print(f"   ✅ Utente trovato per email: {user_by_email.username}")
-        except User.DoesNotExist:
-            print(f"   ❌ Nessun utente trovato per email: '{email_or_username}'")
-            user_by_email = None
-        
-        # Mostra tutti gli utenti dirigenti esistenti
-        print(f"\n   📋 DIRIGENTI NEL DATABASE:")
-        from .models import Dirigente
-        dirigenti = Dirigente.objects.all()
-        for d in dirigenti:
-            print(f"      - {d.user.username} ({d.user.email}) - {d.nome} {d.cognome}")
-            print(f"        Password hash: {d.user.password[:20]}...")
-        
         # Prova prima con username diretto
         user = authenticate(request, username=email_or_username, password=password)
-        print(f"   🔑 Authenticate con username: {'✅ Successo' if user else '❌ Fallito'}")
         
         # Se non funziona, prova a cercare l'utente per email e usa il suo username
-        if user is None and user_by_email:
-            user = authenticate(request, username=user_by_email.username, password=password)
-            print(f"   🔑 Authenticate con email->username: {'✅ Successo' if user else '❌ Fallito'}")
+        if user is None:
+            from django.contrib.auth.models import User
+            try:
+                user_by_email = User.objects.get(email=email_or_username)
+                user = authenticate(request, username=user_by_email.username, password=password)
+            except User.DoesNotExist:
+                pass
         
         if user is not None:
-            print(f"   👤 Utente autenticato: {user.username}")
-            
             # Verifica se ha il profilo dirigente
             if hasattr(user, 'dirigente'):
-                print(f"   👔 Profilo dirigente trovato: {user.dirigente.nome} {user.dirigente.cognome}")
                 login(request, user)
                 messages.success(request, f'Benvenuto, {user.dirigente.nome_completo}!')
                 return redirect('dirigenti:dashboard')
             else:
-                print(f"   ❌ Utente {user.username} NON ha profilo dirigente")
                 error = "Questo utente non è un dirigente."
         else:
-            print(f"   ❌ Autenticazione fallita per '{email_or_username}'")
             error = "Credenziali non valide."
     
     return render(request, 'dirigenti/login.html', {'error': error})
@@ -81,34 +50,42 @@ def login_dirigente(request):
 def dashboard_dirigente(request):
     dirigente = get_object_or_404(Dirigente, user=request.user)
     
-    # Ottieni i negozi accessibili
-    negozi_accessibili = dirigente.get_negozi_accessibili()
+    # PER DIRIGENTI: Solo il negozio principale (associazione 1-1)
+    negozio_principale = dirigente.negozio_principale
     
-    # Statistiche generali
+    # Statistiche specifiche per il negozio del dirigente
+    # Calcolo prodotti: specifici del negozio + prodotti comuni (senza negozi associati)
+    prodotti_negozio = Prodotto.objects.filter(negozi=negozio_principale)
+    prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
+    prodotti_totali_count = (prodotti_negozio | prodotti_comuni).distinct().count()
+    
     stats = {
-        'negozi_gestiti': negozi_accessibili.count(),
-        'dipendenti_totali': Dipendente.objects.filter(negozio__in=negozi_accessibili).count(),
-        'prodotti_totali': Prodotto.objects.filter(negozi__in=negozi_accessibili).distinct().count(),
+        'negozi_gestiti': 1,  # Solo il negozio principale
+        'dipendenti_totali': Dipendente.objects.filter(negozio=negozio_principale).count(),
+        'prodotti_totali': prodotti_totali_count,
     }
     
-    # Statistiche vendite (ultimi 30 giorni)
+    # Statistiche vendite (ultimi 30 giorni) - SOLO per il negozio del dirigente
     data_inizio = timezone.now() - timedelta(days=30)
     ordini_recenti = Ordine.objects.filter(
-        negozio__in=negozi_accessibili,
+        negozio=negozio_principale,
         data_ordine__gte=data_inizio
     )
     
     stats['ordini_mese'] = ordini_recenti.count()
     stats['fatturato_mese'] = ordini_recenti.aggregate(Sum('totale_finale'))['totale_finale__sum'] or 0
     
-    # Dati per grafici - Vendite per giorno (ultimi 7 giorni)
+    # Ottieni il parametro per i giorni (default 7)
+    giorni = int(request.GET.get('giorni', 7))
+    
+    # Dati per grafici - Vendite per giorno (configurabile: 7 o 30 giorni)
     vendite_giornaliere = []
     labels_giorni = []
     
-    for i in range(6, -1, -1):  # Ultimi 7 giorni
+    for i in range(giorni-1, -1, -1):  # Ultimi X giorni
         giorno = timezone.now().date() - timedelta(days=i)
         ordini_giorno = Ordine.objects.filter(
-            negozio__in=negozi_accessibili,
+            negozio=negozio_principale,
             data_ordine__date=giorno
         )
         
@@ -116,39 +93,22 @@ def dashboard_dirigente(request):
         vendite_giornaliere.append(float(fatturato_giorno))
         labels_giorni.append(giorno.strftime('%d/%m'))
     
-    # Dati per grafico - Vendite per negozio
-    vendite_per_negozio = []
-    labels_negozi = []
-    
-    for negozio in negozi_accessibili:
-        fatturato_negozio = Ordine.objects.filter(
-            negozio=negozio,
-            data_ordine__gte=data_inizio
-        ).aggregate(Sum('totale_finale'))['totale_finale__sum'] or 0
-        
-        vendite_per_negozio.append(float(fatturato_negozio))
-        labels_negozi.append(negozio.nome.split()[-1])  # Solo l'ultima parola del nome
-    
-    # Prodotti più venduti
+    # Prodotti più venduti (SOLO per il negozio del dirigente + prodotti comuni)
     from django.db.models import F
     try:
-        prodotti_top = Prodotto.objects.filter(
-            negozi__in=negozi_accessibili
-        ).annotate(
+        # Unisce prodotti specifici del negozio + prodotti comuni
+        prodotti_accessibili = (prodotti_negozio | prodotti_comuni).distinct()
+        prodotti_top = prodotti_accessibili.annotate(
             vendite_totali=Count('dettaglioordine')
         ).order_by('-vendite_totali')[:5]
     except:
-        prodotti_top = Prodotto.objects.filter(negozi__in=negozi_accessibili)[:5]
+        prodotti_top = (prodotti_negozio | prodotti_comuni).distinct()[:5]
     
     # Prepara i dati per il template
     charts_data = {
         'vendite_giornaliere': {
             'labels': labels_giorni,
             'data': vendite_giornaliere
-        },
-        'vendite_per_negozio': {
-            'labels': labels_negozi,
-            'data': vendite_per_negozio
         }
     }
     
@@ -156,9 +116,10 @@ def dashboard_dirigente(request):
         'dirigente': dirigente,
         'stats': stats,
         'charts_data': json.dumps(charts_data),
-        'negozi_gestiti': negozi_accessibili,
+        'negozio_gestito': negozio_principale,  # Solo il negozio principale
         'prodotti_top': prodotti_top,
         'ordini_recenti': ordini_recenti.order_by('-data_ordine')[:10],
+        'giorni_selezionati': giorni,
     }
     
     return render(request, 'dirigenti/dashboard.html', context)
@@ -223,3 +184,41 @@ def gestione_prodotti(request):
     }
     
     return render(request, 'dirigenti/gestione_prodotti.html', context)
+
+@login_required
+def ajax_vendite_periodo(request):
+    """Vista AJAX per aggiornare il grafico delle vendite con periodo dinamico"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Richiesta non valida'}, status=400)
+    
+    dirigente = get_object_or_404(Dirigente, user=request.user)
+    negozio_principale = dirigente.negozio_principale
+    
+    giorni = int(request.GET.get('giorni', 7))
+    if giorni not in [7, 30]:
+        giorni = 7  # Default
+    
+    # Dati per grafici - Vendite per giorno
+    vendite_giornaliere = []
+    labels_giorni = []
+    
+    for i in range(giorni-1, -1, -1):
+        giorno = timezone.now().date() - timedelta(days=i)
+        ordini_giorno = Ordine.objects.filter(
+            negozio=negozio_principale,
+            data_ordine__date=giorno
+        )
+        
+        fatturato_giorno = ordini_giorno.aggregate(Sum('totale_finale'))['totale_finale__sum'] or 0
+        vendite_giornaliere.append(float(fatturato_giorno))
+        
+        if giorni == 7:
+            labels_giorni.append(giorno.strftime('%d/%m'))
+        else:  # 30 giorni
+            labels_giorni.append(giorno.strftime('%d/%m'))
+    
+    return JsonResponse({
+        'labels': labels_giorni,
+        'data': vendite_giornaliere,
+        'periodo': f'{giorni} giorni'
+    })

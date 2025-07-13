@@ -2,9 +2,23 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.db.models import Q
 from django.contrib import messages
+from functools import wraps
 from .models import Prodotto
 from decimal import Decimal
 
+
+def dipendente_non_allowed(view_func):
+    """
+    Decorator che blocca l'accesso ai dipendenti mostrando la pagina 404.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and (hasattr(request.user, 'dipendente') or hasattr(request.user, 'dirigente')):
+            return render(request, '404.html', status=404)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@dipendente_non_allowed
 def list(request):
     """Vista per la lista di tutti i prodotti con filtri e ricerca"""
     
@@ -121,6 +135,7 @@ def list(request):
     return render(request, 'prodotti/prodotti_list.html', context)
 
 
+@dipendente_non_allowed
 def detail(request, product_id):
     """Vista per il dettaglio di un singolo prodotto"""
     prodotto = get_object_or_404(Prodotto, id=product_id)

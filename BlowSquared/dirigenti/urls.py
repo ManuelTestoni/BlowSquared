@@ -10,4 +10,5 @@ urlpatterns = [
     path('dipendenti/', views.gestione_dipendenti, name='gestione_dipendenti'),
     path('statistiche/', views.statistiche, name='statistiche'),
     path('prodotti/', views.gestione_prodotti, name='gestione_prodotti'),
+    path('ajax/vendite-periodo/', views.ajax_vendite_periodo, name='ajax_vendite_periodo'),
 ]

@@ -1,6 +1,7 @@
 from django import forms
 from prodotti.models import Prodotto
 from decimal import Decimal
+from django.utils import timezone
 
 class ProdottoForm(forms.ModelForm):
     quantita = forms.IntegerField(
@@ -47,8 +48,8 @@ class ProdottoForm(forms.ModelForm):
             'sconto': forms.NumberInput(attrs={
                 'class': 'form-control styled-input', 
                 'min': '0', 
-                'max': '100',
-                'placeholder': 'Sconto in percentuale (0-100)'
+                'max': '70',
+                'placeholder': 'Sconto in percentuale (0-70)'
             }),
             'peso': forms.TextInput(attrs={
                 'class': 'form-control styled-input', 
@@ -114,9 +115,18 @@ class ProdottoForm(forms.ModelForm):
 
     def clean_sconto(self):
         sconto = self.cleaned_data.get('sconto')
-        if sconto is not None and (sconto < 0 or sconto > 100):
-            raise forms.ValidationError("Lo sconto deve essere tra 0 e 100.")
+        if sconto is not None:
+            if sconto < 0:
+                raise forms.ValidationError("Lo sconto non può essere negativo.")
+            if sconto > 70:
+                raise forms.ValidationError("Lo sconto non può essere superiore al 70%.")
         return sconto
+
+    def clean_data_scadenza(self):
+        data_scadenza = self.cleaned_data.get('data_scadenza')
+        if data_scadenza and data_scadenza < timezone.now().date():
+            raise forms.ValidationError("La data di scadenza non può essere nel passato.")
+        return data_scadenza
 
     def clean_codice_a_barre(self):
         codice = self.cleaned_data.get('codice_a_barre')

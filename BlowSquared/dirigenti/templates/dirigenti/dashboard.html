@@ -15,17 +15,13 @@
     <div class="header-info">
       <h1>Dashboard Direzione</h1>
       <p class="header-subtitle">{{ dirigente.nome_completo }} - {{ dirigente.get_livello_accesso_display }}</p>
+      <p class="header-subtitle">Negozio: <strong>{{ negozio_gestito.nome }}</strong></p>
       <div class="header-stats">
-        <span class="stat-item">🏪 {{ stats.negozi_gestiti }} negozi gestiti</span>
+        <span class="stat-item">🏪 {{ negozio_gestito.citta }}</span>
         <span class="stat-item">👥 {{ stats.dipendenti_totali }} dipendenti</span>
       </div>
     </div>
-    <div class="header-actions">
-      <a href="{% url 'dirigenti:gestione_negozi' %}" class="btn btn-primary">
-        <span class="btn-icon">🏪</span>
-        Gestisci Negozi
-      </a>
-    </div>
+    <!-- Rimosso il pulsante "Gestisci Negozi" -->
   </div>
 
   <!-- Statistiche Rapide -->
@@ -71,43 +67,28 @@
   <div class="charts-section">
     <div class="chart-card">
       <div class="chart-header">
-        <h3>Andamento Vendite Settimanali</h3>
+        <h3>Andamento Vendite - {{ negozio_gestito.nome }}</h3>
         <div class="chart-controls">
-          <button class="chart-btn active" data-period="7">7 giorni</button>
-          <button class="chart-btn" data-period="30">30 giorni</button>
+          <button class="chart-btn {% if giorni_selezionati == 7 %}active{% endif %}" data-period="7">7 giorni</button>
+          <button class="chart-btn {% if giorni_selezionati == 30 %}active{% endif %}" data-period="30">30 giorni</button>
         </div>
       </div>
       <div class="chart-container">
         <canvas id="venditeTrendChart"></canvas>
       </div>
     </div>
-    
-    <div class="chart-card">
-      <div class="chart-header">
-        <h3>Performance per Negozio</h3>
-        <div class="chart-legend">
-          <span class="legend-item">
-            <span class="legend-color primary"></span>
-            Fatturato
-          </span>
-        </div>
-      </div>
-      <div class="chart-container">
-        <canvas id="negoziPerformanceChart"></canvas>
-      </div>
-    </div>
   </div>
 
   <!-- Tabelle di Dettaglio -->
   <div class="tables-section">
-    <!-- Negozi Gestiti -->
+    <!-- Negozio Gestito (Solo uno) -->
     <div class="table-card">
       <div class="table-header">
         <h3>
           <span class="table-icon">🏪</span>
-          Negozi Sotto Gestione
+          Il Tuo Negozio
         </h3>
-        <a href="{% url 'dirigenti:gestione_negozi' %}" class="table-action">Vedi Tutti</a>
+        <!-- Rimosso "Vedi Tutti" -->
       </div>
       <div class="table-container">
         <table class="data-table">
@@ -121,22 +102,20 @@
             </tr>
           </thead>
           <tbody>
-            {% for negozio in negozi_gestiti %}
             <tr>
               <td>
                 <div class="cell-content">
-                  <strong>{{ negozio.nome }}</strong>
-                  <small>{{ negozio.codice_negozio }}</small>
+                  <strong>{{ negozio_gestito.nome }}</strong>
+                  <small>{{ negozio_gestito.codice_negozio }}</small>
                 </div>
               </td>
-              <td>{{ negozio.citta }} ({{ negozio.provincia }})</td>
-              <td>{{ negozio.dipendenti.count }}</td>
-              <td>€0.00</td> <!-- TODO: calcolare fatturato -->
+              <td>{{ negozio_gestito.citta }} ({{ negozio_gestito.provincia }})</td>
+              <td>{{ stats.dipendenti_totali }}</td>
+              <td>€{{ stats.fatturato_mese|floatformat:2 }}</td>
               <td>
                 <span class="status-badge active">Operativo</span>
               </td>
             </tr>
-            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -149,7 +128,7 @@
           <span class="table-icon">🏆</span>
           Prodotti Più Venduti
         </h3>
-        <a href="{% url 'dirigenti:gestione_prodotti' %}" class="table-action">Gestisci</a>
+        <!-- Rimosso "Gestisci" -->
       </div>
       <div class="table-container">
         <table class="data-table">
@@ -178,7 +157,7 @@
                   {{ prodotto.stock }}
                 </span>
               </td>
-              <td>-</td> <!-- TODO: calcolare vendite -->
+              <td>{{ prodotto.vendite_totali|default:"-" }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -193,75 +172,76 @@
 const chartsData = {{ charts_data|safe }};
 
 // Grafico Trend Vendite
+let trendChart;
 const trendCtx = document.getElementById('venditeTrendChart').getContext('2d');
-const trendChart = new Chart(trendCtx, {
-    type: 'line',
-    data: {
-        labels: chartsData.vendite_giornaliere.labels,
-        datasets: [{
-            label: 'Fatturato (€)',
-            data: chartsData.vendite_giornaliere.data,
-            borderColor: '#3e7447',
-            backgroundColor: 'rgba(62, 116, 71, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return '€' + value.toFixed(2);
-                    }
-                }
-            }
-        }
-    }
-});
 
-// Grafico Performance Negozi
-const negoziCtx = document.getElementById('negoziPerformanceChart').getContext('2d');
-const negoziChart = new Chart(negoziCtx, {
-    type: 'bar',
-    data: {
-        labels: chartsData.vendite_per_negozio.labels,
-        datasets: [{
-            label: 'Fatturato (€)',
-            data: chartsData.vendite_per_negozio.data,
-            backgroundColor: '#deae52',
-            borderColor: '#deae52',
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
+function createTrendChart(data) {
+    if (trendChart) {
+        trendChart.destroy();
+    }
+    
+    trendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Fatturato (€)',
+                data: data.data,
+                borderColor: '#3e7447',
+                backgroundColor: 'rgba(62, 116, 71, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) {
-                        return '€' + value.toFixed(2);
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '€' + value.toFixed(2);
+                        }
                     }
                 }
             }
         }
-    }
+    });
+}
+
+// Inizializza il grafico
+createTrendChart(chartsData.vendite_giornaliere);
+
+// Gestisci i pulsanti del periodo
+document.querySelectorAll('.chart-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const giorni = this.getAttribute('data-period');
+        
+        // Aggiorna i pulsanti attivi
+        document.querySelectorAll('.chart-btn').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Chiamata AJAX per aggiornare i dati
+        fetch(`{% url 'dirigenti:ajax_vendite_periodo' %}?giorni=${giorni}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            createTrendChart(data);
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento dei dati:', error);
+        });
+    });
 });
 </script>
 {% endblock %}

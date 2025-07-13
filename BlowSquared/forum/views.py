@@ -3,11 +3,25 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
+from functools import wraps
 import json
 from negozi.models import Negozio
 from prodotti.models import Prodotto
 from .models import MessaggioForum
 
+
+def dipendente_non_allowed(view_func):
+    """
+    Decorator che blocca l'accesso ai dipendenti e dirigenti mostrando la pagina 404.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and (hasattr(request.user, 'dipendente') or hasattr(request.user, 'dirigente')):
+            return render(request, '404.html', status=404)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+@dipendente_non_allowed
 @login_required
 def forum_home(request):
     """Vista principale del forum"""

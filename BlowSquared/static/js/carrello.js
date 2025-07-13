@@ -8,17 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
     quantityBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const action = this.dataset.action;
-            const input = this.parentElement.querySelector('.quantity-input');
-            let currentValue = parseInt(input.value);
+            const itemId = this.dataset.itemId;
             
             if (action === 'increase') {
-                currentValue++;
-            } else if (action === 'decrease' && currentValue > 1) {
-                currentValue--;
+                incrementQuantity(itemId);
+            } else if (action === 'decrease') {
+                decrementQuantity(itemId);
             }
-            
-            input.value = currentValue;
-            updateItemTotal(this.closest('.cart-item'));
         });
     });
     
@@ -26,7 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', function() {
             if (this.value < 1) this.value = 1;
             if (this.value > 99) this.value = 99;
-            updateItemTotal(this.closest('.cart-item'));
+            
+            const itemId = this.dataset.itemId;
+            const newQuantity = parseInt(this.value);
+            updateQuantity(itemId, newQuantity);
         });
     });
     
@@ -35,10 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
     removeButtons.forEach(btn => {
         btn.addEventListener('click', function() {
             const itemId = this.dataset.itemId;
-            const cartItem = this.closest('.cart-item');
             
             if (confirm('Sei sicuro di voler rimuovere questo prodotto dal carrello?')) {
-                removeCartItem(cartItem, itemId);
+                removeCartItem(itemId);
             }
         });
     });
@@ -79,34 +77,189 @@ function updateItemTotal(cartItem) {
     updateOrderSummary();
 }
 
-function removeCartItem(cartItem, itemId) {
-    // Animazione di rimozione
-    cartItem.style.animation = 'slideOut 0.3s ease';
-    
-    setTimeout(() => {
-        cartItem.remove();
-        updateOrderSummary();
-        
-        // Controlla se il carrello è vuoto
-        const remainingItems = document.querySelectorAll('.cart-item');
-        if (remainingItems.length === 0) {
-            showEmptyCartMessage();
+function removeCartItem(itemId) {
+    // Chiamata AJAX per rimuovere dal backend
+    fetch(`/carrello/rimuovi/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
         }
-    }, 300);
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Trova l'elemento nel DOM e rimuovilo con animazione
+            const cartItem = document.querySelector(`[data-item-id="${itemId}"]`).closest('.cart-item');
+            cartItem.style.animation = 'slideOut 0.3s ease';
+            
+            setTimeout(() => {
+                cartItem.remove();
+                updateOrderSummary();
+                updateCartCounter(data.carrello_count);
+                
+                // Controlla se il carrello è vuoto
+                const remainingItems = document.querySelectorAll('.cart-item');
+                if (remainingItems.length === 0) {
+                    showEmptyCartMessage();
+                }
+            }, 300);
+            
+            // Mostra messaggio di successo
+            showNotification(data.message, 'success');
+        } else {
+            alert('Errore nella rimozione: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore di rete durante la rimozione');
+    });
+}
+
+function incrementQuantity(itemId) {
+    // Chiamata AJAX per incrementare quantità nel backend
+    fetch(`/carrello/incrementa/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Aggiorna il DOM con i nuovi valori
+            const cartItem = document.querySelector(`[data-item-id="${itemId}"]`).closest('.cart-item');
+            const quantityInput = cartItem.querySelector('.quantity-input');
+            const totalPriceElement = cartItem.querySelector('.item-total-price');
+            
+            quantityInput.value = data.quantita;
+            totalPriceElement.textContent = '€' + data.elemento_prezzo_totale.toFixed(2);
+            
+            updateOrderSummary();
+            updateCartCounter(data.carrello_count);
+            
+            // Mostra messaggio di successo
+            showNotification(data.message, 'success');
+        } else {
+            alert('Errore nell\'incremento: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore di rete durante l\'incremento');
+    });
+}
+
+function decrementQuantity(itemId) {
+    // Chiamata AJAX per decrementare quantità nel backend
+    fetch(`/carrello/decrementa/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Aggiorna il DOM con i nuovi valori
+            const cartItem = document.querySelector(`[data-item-id="${itemId}"]`).closest('.cart-item');
+            const quantityInput = cartItem.querySelector('.quantity-input');
+            const totalPriceElement = cartItem.querySelector('.item-total-price');
+            
+            quantityInput.value = data.quantita;
+            totalPriceElement.textContent = '€' + data.elemento_prezzo_totale.toFixed(2);
+            
+            updateOrderSummary();
+            updateCartCounter(data.carrello_count);
+            
+            // Mostra messaggio di successo
+            showNotification(data.message, 'success');
+        } else {
+            alert('Errore nel decremento: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore di rete durante il decremento');
+    });
+}
+
+function updateQuantity(itemId, newQuantity) {
+    // Chiamata AJAX per aggiornare quantità nel backend
+    const formData = new FormData();
+    formData.append('quantita', newQuantity);
+    
+    fetch(`/carrello/aggiorna/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Aggiorna il DOM con i nuovi valori
+            const cartItem = document.querySelector(`[data-item-id="${itemId}"]`).closest('.cart-item');
+            const totalPriceElement = cartItem.querySelector('.item-total-price');
+            
+            totalPriceElement.textContent = '€' + data.elemento_prezzo_totale.toFixed(2);
+            
+            updateOrderSummary();
+            updateCartCounter(data.carrello_count);
+            
+            // Mostra messaggio di successo
+            showNotification(data.message, 'success');
+        } else {
+            alert('Errore nell\'aggiornamento: ' + data.message);
+            // Ripristina il valore precedente se l'aggiornamento fallisce
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore di rete durante l\'aggiornamento');
+        location.reload();
+    });
 }
 
 function clearCart() {
-    const cartItems = document.querySelectorAll('.cart-item');
-    cartItems.forEach((item, index) => {
-        setTimeout(() => {
-            item.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => item.remove(), 300);
-        }, index * 100);
+    // Chiamata AJAX per svuotare il carrello nel backend
+    fetch('/carrello/svuota/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Animazione di rimozione elementi
+            const cartItems = document.querySelectorAll('.cart-item');
+            cartItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.style.animation = 'slideOut 0.3s ease';
+                    setTimeout(() => item.remove(), 300);
+                }, index * 100);
+            });
+            
+            setTimeout(() => {
+                showEmptyCartMessage();
+                // Aggiorna il contatore del carrello
+                updateCartCounter(0);
+            }, cartItems.length * 100 + 300);
+        } else {
+            alert('Errore nello svuotamento del carrello: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Errore:', error);
+        alert('Errore di rete durante lo svuotamento del carrello');
     });
-    
-    setTimeout(() => {
-        showEmptyCartMessage();
-    }, cartItems.length * 100 + 300);
 }
 
 function updateOrderSummary() {
@@ -171,6 +324,35 @@ function showEmptyCartMessage() {
     }
 }
 
+// Funzione per ottenere il CSRF token dai cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Funzione per aggiornare il contatore del carrello nella navbar
+function updateCartCounter(count) {
+    const cartCounter = document.getElementById('cartCounter');
+    if (cartCounter) {
+        if (count > 0) {
+            cartCounter.textContent = count;
+            cartCounter.style.display = 'block';
+        } else {
+            cartCounter.style.display = 'none';
+        }
+    }
+}
+
 // CSS Animation
 const style = document.createElement('style');
 style.textContent = `
@@ -180,4 +362,56 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Funzione per mostrare notifiche
+function showNotification(message, type = 'info') {
+    // Crea un elemento notifica
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Stili per la notifica
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 10000;
+        font-size: 14px;
+        max-width: 300px;
+        animation: slideInFromRight 0.3s ease;
+    `;
+    
+    // Aggiungi al documento
+    document.body.appendChild(notification);
+    
+    // Rimuovi dopo 3 secondi
+    setTimeout(() => {
+        notification.style.animation = 'slideOutToRight 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Aggiungi animazioni per le notifiche
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    @keyframes slideInFromRight {
+        from { opacity: 0; transform: translateX(100%); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    
+    @keyframes slideOutToRight {
+        from { opacity: 1; transform: translateX(0); }
+        to { opacity: 0; transform: translateX(100%); }
+    }
+`;
+document.head.appendChild(notificationStyle);
 
