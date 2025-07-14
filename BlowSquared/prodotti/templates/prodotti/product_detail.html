@@ -119,6 +119,13 @@
         {% endif %}
         
         <div class="product-actions-detail">
+          {% if negozio_selezionato %}
+          <div class="store-info-detail">
+            <span class="store-icon">🏪</span>
+            <span>Disponibile presso: <strong>{{ negozio_selezionato.nome }}</strong></span>
+          </div>
+          {% endif %}
+          
           <div class="product-actions">
             <div class="quantity-selector">
               <label for="quantity" class="quantity-label">Quantità:</label>
@@ -129,15 +136,33 @@
               </div>
             </div>
             
-            <button class="btn-add-cart-detail" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
-              {% if prodotto.stock == 0 %}
-                <span class="btn-icon">❌</span>
-                Non Disponibile
-              {% else %}
-                <span class="btn-icon">🛒</span>
-                Aggiungi al Carrello
-              {% endif %}
-            </button>
+            {% if user.is_authenticated %}
+              <button class="btn-add-cart-detail" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
+                {% if prodotto.stock == 0 %}
+                  <span class="btn-icon">❌</span>
+                  Non Disponibile
+                {% else %}
+                  <span class="btn-icon">🛒</span>
+                  Aggiungi al Carrello
+                {% endif %}
+              </button>
+            {% else %}
+              <div class="guest-cart-info">
+                <button class="btn-add-cart-detail" data-product-id="{{ prodotto.id }}" {% if prodotto.stock == 0 %}disabled{% endif %}>
+                  {% if prodotto.stock == 0 %}
+                    <span class="btn-icon">❌</span>
+                    Non Disponibile
+                  {% else %}
+                    <span class="btn-icon">🛒</span>
+                    Aggiungi al Carrello
+                  {% endif %}
+                </button>
+                <p class="guest-info">
+                  <span class="info-icon">ℹ️</span>
+                  <a href="{% url 'utenti:login' %}">Accedi</a> o <a href="{% url 'utenti:signup' %}">registrati</a> per aggiungere prodotti al carrello
+                </p>
+              </div>
+            {% endif %}
           </div>
           
           <a href="{% url 'prodotti:list' %}" class="btn-back-to-products">Torna ai prodotti</a>
@@ -169,6 +194,53 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/prodotti.css' %}">
+<style>
+  .store-info-detail {
+    background: #e8f5e8;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+    color: #2e7d32;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .store-info-detail .store-icon {
+    font-size: 1.2rem;
+  }
+  
+  .guest-cart-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .guest-info {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .guest-info a {
+    color: #3e7447;
+    text-decoration: none;
+    font-weight: 500;
+  }
+  
+  .guest-info a:hover {
+    text-decoration: underline;
+  }
+  
+  .info-icon {
+    font-size: 1.1rem;
+  }
+</style>
 {% endblock %}
 
 {% block extra_js %}

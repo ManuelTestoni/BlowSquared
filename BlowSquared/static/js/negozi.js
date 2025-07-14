@@ -173,7 +173,14 @@ function popolaDettaglioNegozio(negozio) {
 }
 
 function selezionaNegozio(negozioId) {
-    window.location.href = `/negozi/${negozioId}/seleziona/`;
+    // Verifica se l'utente è autenticato controllando l'elemento del nav
+    const isAuthenticated = document.querySelector('.user-menu') !== null;
+    
+    if (isAuthenticated) {
+        window.location.href = `/negozi/${negozioId}/seleziona/`;
+    } else {
+        window.location.href = `/negozi/${negozioId}/seleziona-temporaneo/`;
+    }
 }
 
 function chiudiDettaglio() {

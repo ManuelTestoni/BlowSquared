@@ -8,10 +8,16 @@
 <section class="products-hero">
   <div class="products-hero-content">
     <h1 class="products-title">I Nostri Prodotti</h1>
-    {% if user.is_authenticated and user.profilo.negozio_preferito %}
+    {% if negozio_selezionato %}
     <p class="products-subtitle">
-      <strong>{{ user.profilo.negozio_preferito.citta }}</strong>: Scopri la nostra selezione di prodotti di qualità premium
+      <strong>{{ negozio_selezionato.nome }}</strong> - {{ negozio_selezionato.citta }}: Scopri la nostra selezione di prodotti di qualità premium
     </p>
+    {% if not user.is_authenticated %}
+    <div class="guest-store-info">
+      <span class="info-icon">ℹ️</span>
+      <span>Registrati per salvare la tua scelta e accedere al carrello!</span>
+    </div>
+    {% endif %}
     {% else %}
     <p class="products-subtitle">Scopri la nostra selezione di prodotti di qualità premium</p>
     {% endif %}
@@ -171,6 +177,24 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 <link rel="stylesheet" href="{% static 'css/prodotti.css' %}">
+<style>
+  .guest-store-info {
+    background: #e8f5e8;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    color: #2e7d32;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .guest-store-info .info-icon {
+    font-size: 1.2rem;
+  }
+</style>
 {% endblock %}
 
 {% block extra_js %}

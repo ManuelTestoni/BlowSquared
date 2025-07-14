@@ -114,7 +114,12 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
         } else {
             console.log(`❌ ERRORE:`, data.message);
             // Mostra messaggio di errore
-            showNotification(data.message, 'error');
+            if (data.redirect_login) {
+                // Per utenti non autenticati, mostra un messaggio specifico
+                showNotification(data.message, 'info');
+            } else {
+                showNotification(data.message, 'error');
+            }
             
             // Ripristina il pulsante
             button.disabled = false;

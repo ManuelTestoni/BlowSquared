@@ -91,12 +91,19 @@ def visualizza_carrello(request):
     return render(request, 'carrello/carrello.html', context)
 
 @dipendente_non_allowed
-@login_required
 def aggiungi_al_carrello(request, prodotto_id):
     """Vista per aggiungere un prodotto al carrello"""
     
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Metodo non permesso'})
+    
+    # Controlla se l'utente è autenticato
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'success': False,
+            'message': 'Registrati o accedi per aggiungere prodotti al carrello',
+            'redirect_login': True
+        })
     
     try:
         # Verifica che l'utente abbia un negozio selezionato

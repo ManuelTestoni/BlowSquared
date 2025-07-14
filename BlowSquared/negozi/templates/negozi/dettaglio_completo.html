@@ -175,10 +175,17 @@
     
     <!-- Action Buttons -->
     <div class="store-actions">
-      <a href="{% url 'negozi:seleziona_preferito' negozio.id %}" class="btn-primary catalog-btn">
-        <span class="btn-icon">🛒</span>
-        Vai al Catalogo
-      </a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'negozi:seleziona_preferito' negozio.id %}" class="btn-primary catalog-btn">
+          <span class="btn-icon">🛒</span>
+          Vai al Catalogo
+        </a>
+      {% else %}
+        <a href="{% url 'negozi:seleziona_temporaneo' negozio.id %}" class="btn-primary catalog-btn">
+          <span class="btn-icon">🛒</span>
+          Vai al Catalogo
+        </a>
+      {% endif %}
       <a href="{% url 'negozi:seleziona_negozio' %}" class="btn-secondary back-btn">
         <span class="btn-icon">↩️</span>
         Torna alla Selezione

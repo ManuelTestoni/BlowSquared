@@ -202,6 +202,23 @@ def seleziona_negozio_preferito(request, negozio_id):
         messages.error(request, f'Errore nella selezione del negozio: {str(e)}')
         return redirect('negozi:seleziona_negozio')
 
+@dipendente_non_allowed
+def seleziona_negozio_temporaneo(request, negozio_id):
+    """Vista per selezionare temporaneamente un negozio per utenti non autenticati"""
+    negozio = get_object_or_404(Negozio, id=negozio_id, attivo=True)
+    
+    # Se l'utente è autenticato, reindirizza alla selezione normale
+    if request.user.is_authenticated:
+        return redirect('negozi:seleziona_preferito', negozio_id=negozio_id)
+    
+    # Salva il negozio selezionato nella sessione
+    request.session['negozio_temporaneo_id'] = negozio.id
+    request.session['negozio_temporaneo_nome'] = negozio.nome
+    
+    # Reindirizza alla lista prodotti
+    messages.success(request, f'Hai selezionato "{negozio.nome}" per la navigazione. Registrati per salvare la tua scelta!')
+    return redirect('prodotti:list')
+
 def cerca_negozi_vicini(request):
     """API per cercare negozi nelle vicinanze di una posizione"""
     lat = request.GET.get('lat')

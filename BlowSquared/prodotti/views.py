@@ -22,30 +22,46 @@ def dipendente_non_allowed(view_func):
 def list(request):
     """Vista per la lista di tutti i prodotti con filtri e ricerca"""
     
+    negozio_selezionato = None
+    
     # Per gli utenti autenticati, filtra per negozio preferito
-    try:
-        profilo = request.user.profilo
-        if not profilo.negozio_preferito:
+    if request.user.is_authenticated:
+        try:
+            profilo = request.user.profilo
+            if not profilo.negozio_preferito:
+                messages.info(request, 'Seleziona un negozio per vedere i prodotti disponibili.')
+                return redirect('negozi:seleziona_negozio')
+            negozio_selezionato = profilo.negozio_preferito
+        except:
+            # Se non ha un profilo o ci sono errori, redirigi alla selezione negozio
+            messages.info(request, 'Completa il tuo profilo selezionando un negozio.')
+            return redirect('negozi:seleziona_negozio')
+    else:
+        # Per gli utenti non autenticati, verifica se hanno selezionato un negozio temporaneo
+        negozio_temporaneo_id = request.session.get('negozio_temporaneo_id')
+        if negozio_temporaneo_id:
+            try:
+                from negozi.models import Negozio
+                negozio_selezionato = Negozio.objects.get(id=negozio_temporaneo_id, attivo=True)
+            except Negozio.DoesNotExist:
+                # Il negozio temporaneo non è più valido
+                del request.session['negozio_temporaneo_id']
+                if 'negozio_temporaneo_nome' in request.session:
+                    del request.session['negozio_temporaneo_nome']
+        
+        if not negozio_selezionato:
             messages.info(request, 'Seleziona un negozio per vedere i prodotti disponibili.')
             return redirect('negozi:seleziona_negozio')
-        
-        # Filtra prodotti in base al negozio selezionato - LOGICA UNIFICATA
-        negozio_preferito = profilo.negozio_preferito
-        
-        # METODO UNIFICATO: Usa la stessa logica della vista dipendenti
-        # Metodo 1: Prodotti specifici del negozio
-        prodotti_negozio = Prodotto.objects.filter(negozi=negozio_preferito)
-        
-        # Metodo 2: Prodotti senza negozi associati (prodotti comuni)
-        prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
-        
-        # Unione dei due QuerySet - solo prodotti con stock > 0
-        prodotti = (prodotti_negozio | prodotti_comuni).filter(stock__gt=0).distinct()
-        
-    except Exception as e:
-        # Se non ha un profilo o ci sono errori, redirigi alla selezione negozio
-        messages.info(request, 'Completa il tuo profilo selezionando un negozio.')
-        return redirect('negozi:seleziona_negozio')
+    
+    # Filtra prodotti in base al negozio selezionato - LOGICA UNIFICATA
+    # Metodo 1: Prodotti specifici del negozio
+    prodotti_negozio = Prodotto.objects.filter(negozi=negozio_selezionato)
+    
+    # Metodo 2: Prodotti senza negozi associati (prodotti comuni)
+    prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
+    
+    # Unione dei due QuerySet - solo prodotti con stock > 0
+    prodotti = (prodotti_negozio | prodotti_comuni).filter(stock__gt=0).distinct()
     
     # Filtri dalla query string
     search_query = request.GET.get('search', '')
@@ -123,6 +139,7 @@ def list(request):
     
     context = {
         'prodotti': prodotti,
+        'negozio_selezionato': negozio_selezionato,
         'categorie': categorie,
         'search_query': search_query,
         'categoria_selected': categoria,
@@ -143,29 +160,43 @@ def detail(request, product_id):
     # Il prezzo scontato è già disponibile come proprietà del modello
     
     # Verifica se l'utente può vedere questo prodotto nel suo negozio - LOGICA UNIFICATA
+    negozio_selezionato = None
+    
     if request.user.is_authenticated:
         try:
             profilo = request.user.profilo
             if profilo.negozio_preferito:
-                negozio_preferito = profilo.negozio_preferito
-                
-                # CONTROLLO UNIFICATO: Verifica se il prodotto è associato al negozio
-                prodotto_disponibile = (
-                    # Prodotto specifico del negozio
-                    prodotto.negozi.filter(id=negozio_preferito.id).exists() or
-                    # Prodotto comune (senza negozi associati)
-                    not prodotto.negozi.exists()
-                )
-                
-                if not prodotto_disponibile:
-                    messages.warning(request, 'Questo prodotto non è disponibile nel tuo negozio.')
-                elif prodotto.stock <= 0:
-                    messages.warning(request, 'Questo prodotto non è attualmente disponibile (esaurito).')
+                negozio_selezionato = profilo.negozio_preferito
         except:
             pass
+    else:
+        # Per gli utenti non autenticati, verifica se hanno selezionato un negozio temporaneo
+        negozio_temporaneo_id = request.session.get('negozio_temporaneo_id')
+        if negozio_temporaneo_id:
+            try:
+                from negozi.models import Negozio
+                negozio_selezionato = Negozio.objects.get(id=negozio_temporaneo_id, attivo=True)
+            except Negozio.DoesNotExist:
+                pass
+    
+    # Verifica disponibilità del prodotto nel negozio selezionato
+    if negozio_selezionato:
+        # CONTROLLO UNIFICATO: Verifica se il prodotto è associato al negozio
+        prodotto_disponibile = (
+            # Prodotto specifico del negozio
+            prodotto.negozi.filter(id=negozio_selezionato.id).exists() or
+            # Prodotto comune (senza negozi associati)
+            not prodotto.negozi.exists()
+        )
+        
+        if not prodotto_disponibile:
+            messages.warning(request, 'Questo prodotto non è disponibile nel negozio selezionato.')
+        elif prodotto.stock <= 0:
+            messages.warning(request, 'Questo prodotto non è attualmente disponibile (esaurito).')
     
     context = {
-        'prodotto': prodotto
+        'prodotto': prodotto,
+        'negozio_selezionato': negozio_selezionato
     }
     
     return render(request, 'prodotti/product_detail.html', context)
