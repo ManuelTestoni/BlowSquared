@@ -91,7 +91,8 @@ class Carrello(models.Model):
     
     def aggiungi_prodotto(self, prodotto, quantita=1):
         """
-        Aggiunge un prodotto al carrello o incrementa la quantità se già presente
+        Aggiunge un prodotto al carrello con la quantità specificata
+        Se il prodotto esiste già, INCREMENTA la quantità
         """
         elemento, creato = ElementoCarrello.objects.get_or_create(
             carrello=self,
@@ -102,6 +103,24 @@ class Carrello(models.Model):
         if not creato:
             # Se l'elemento esiste già, incrementa la quantità
             elemento.quantita += quantita
+            elemento.save()
+        
+        return elemento
+    
+    def imposta_quantita_prodotto(self, prodotto, quantita):
+        """
+        Imposta una quantità specifica per un prodotto nel carrello
+        Se il prodotto non esiste, lo crea. Se esiste, sostituisce la quantità.
+        """
+        elemento, creato = ElementoCarrello.objects.get_or_create(
+            carrello=self,
+            prodotto=prodotto,
+            defaults={'quantita': quantita}
+        )
+        
+        if not creato:
+            # Se l'elemento esiste già, SOSTITUISCI la quantità
+            elemento.quantita = quantita
             elemento.save()
         
         return elemento

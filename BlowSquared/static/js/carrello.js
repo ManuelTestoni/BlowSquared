@@ -1,12 +1,18 @@
 // Cart JavaScript functionality
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 CARRELLO.JS CARICATO');
+    
     // Quantity controls
     const quantityBtns = document.querySelectorAll('.quantity-btn');
     const quantityInputs = document.querySelectorAll('.quantity-input');
+    console.log(`🔍 TROVATI ${quantityBtns.length} pulsanti quantità`);
+    console.log(`🔍 TROVATI ${quantityInputs.length} input quantità`);
     
-    quantityBtns.forEach(btn => {
+    quantityBtns.forEach((btn, index) => {
+        console.log(`   Pulsante ${index}: action="${btn.dataset.action}", item-id="${btn.dataset.itemId}"`);
         btn.addEventListener('click', function() {
+            console.log(`🖱️ CLICK su pulsante quantità ${this.dataset.action}`);
             const action = this.dataset.action;
             const itemId = this.dataset.itemId;
             
@@ -18,8 +24,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    quantityInputs.forEach(input => {
+    quantityInputs.forEach((input, index) => {
+        console.log(`   Input ${index}: item-id="${input.dataset.itemId}"`);
         input.addEventListener('change', function() {
+            console.log(`🖱️ CHANGE su input quantità`);
             if (this.value < 1) this.value = 1;
             if (this.value > 99) this.value = 99;
             
@@ -31,8 +39,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Remove item buttons
     const removeButtons = document.querySelectorAll('.btn-remove-item');
-    removeButtons.forEach(btn => {
+    console.log(`🔍 TROVATI ${removeButtons.length} pulsanti rimuovi`);
+    
+    removeButtons.forEach((btn, index) => {
+        console.log(`   Pulsante rimuovi ${index}: item-id="${btn.dataset.itemId}"`);
         btn.addEventListener('click', function() {
+            console.log(`🖱️ CLICK su pulsante rimuovi`);
             const itemId = this.dataset.itemId;
             
             if (confirm('Sei sicuro di voler rimuovere questo prodotto dal carrello?')) {
@@ -43,8 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Clear cart button
     const clearCartBtn = document.querySelector('.btn-clear-cart');
+    console.log(`🔍 PULSANTE SVUOTA CARRELLO:`, clearCartBtn ? 'TROVATO' : 'NON TROVATO');
+    
     if (clearCartBtn) {
         clearCartBtn.addEventListener('click', function() {
+            console.log(`🖱️ CLICK su pulsante svuota carrello`);
             if (confirm('Sei sicuro di voler svuotare completamente il carrello?')) {
                 clearCart();
             }
@@ -59,6 +74,9 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '/carrello/checkout/';
         });
     }
+    
+    // Carica il contatore del carrello all'avvio
+    loadCartCounter();
 });
 
 function updateItemTotal(cartItem) {
@@ -78,6 +96,8 @@ function updateItemTotal(cartItem) {
 }
 
 function removeCartItem(itemId) {
+    console.log(`🗑️ RIMUOVI ELEMENTO: ID ${itemId}`);
+    
     // Chiamata AJAX per rimuovere dal backend
     fetch(`/carrello/rimuovi/${itemId}/`, {
         method: 'POST',
@@ -86,8 +106,13 @@ function removeCartItem(itemId) {
             'Content-Type': 'application/json',
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log(`📡 RISPOSTA RIMOZIONE:`, response.status);
+        return response.json();
+    })
     .then(data => {
+        console.log(`📦 DATI RIMOZIONE:`, data);
+        
         if (data.success) {
             // Trova l'elemento nel DOM e rimuovilo con animazione
             const cartItem = document.querySelector(`[data-item-id="${itemId}"]`).closest('.cart-item');
@@ -96,6 +121,7 @@ function removeCartItem(itemId) {
             setTimeout(() => {
                 cartItem.remove();
                 updateOrderSummary();
+                console.log(`🔢 AGGIORNO CONTATORE DOPO RIMOZIONE: ${data.carrello_count}`);
                 updateCartCounter(data.carrello_count);
                 
                 // Controlla se il carrello è vuoto
@@ -108,6 +134,7 @@ function removeCartItem(itemId) {
             // Mostra messaggio di successo
             showNotification(data.message, 'success');
         } else {
+            console.log(`❌ ERRORE RIMOZIONE:`, data.message);
             alert('Errore nella rimozione: ' + data.message);
         }
     })
@@ -351,6 +378,25 @@ function updateCartCounter(count) {
             cartCounter.style.display = 'none';
         }
     }
+}
+
+// Funzione per caricare il contatore del carrello all'avvio della pagina
+function loadCartCounter() {
+    fetch('/carrello/api/count/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartCounter(data.count);
+        }
+    })
+    .catch(error => {
+        console.error('Errore nel caricamento del contatore carrello:', error);
+    });
 }
 
 // CSS Animation

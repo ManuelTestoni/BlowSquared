@@ -153,13 +153,53 @@ def seleziona_negozio_preferito(request, negozio_id):
     
     try:
         profilo = request.user.profilo
+        negozio_precedente = profilo.negozio_preferito
+        
+        # Se l'utente sta cambiando negozio e ha elementi nel carrello
+        if negozio_precedente and negozio_precedente != negozio:
+            from carrello.models import Carrello
+            
+            # Verifica se ha un carrello con elementi
+            try:
+                carrello = Carrello.objects.get(utente=request.user)
+                if carrello.elementi.exists():
+                    # Se non ha confermato lo svuotamento, chiedi conferma
+                    conferma = request.POST.get('conferma_svuotamento')
+                    if not conferma:
+                        context = {
+                            'negozio_corrente': negozio_precedente,
+                            'negozio_nuovo': negozio,
+                            'elementi_carrello': carrello.elementi.count(),
+                            'quantita_totale': carrello.numero_articoli,
+                            'subtotale': carrello.subtotale,
+                        }
+                        return render(request, 'negozi/conferma_cambio_negozio.html', context)
+                    
+                    # Se ha confermato, svuota il carrello
+                    if conferma == 'si':
+                        carrello.svuota_carrello()
+                        messages.warning(request, f'Il carrello è stato svuotato per il cambio da "{negozio_precedente.nome}" a "{negozio.nome}".')
+                    elif conferma == 'no':
+                        messages.info(request, 'Cambio negozio annullato. Il carrello è rimasto invariato.')
+                        return redirect('negozi:seleziona_negozio')
+                        
+            except Carrello.DoesNotExist:
+                # L'utente non ha ancora un carrello, continua normalmente
+                pass
+        
+        # Imposta il nuovo negozio
         profilo.negozio_preferito = negozio
         profilo.save()
         
-        messages.success(request, f'Hai selezionato "{negozio.nome}" come tuo negozio preferito!')
+        if negozio_precedente and negozio_precedente != negozio:
+            messages.success(request, f'Hai cambiato negozio da "{negozio_precedente.nome}" a "{negozio.nome}"!')
+        else:
+            messages.success(request, f'Hai selezionato "{negozio.nome}" come tuo negozio preferito!')
+            
         return redirect('prodotti:list')
-    except:
-        messages.error(request, 'Errore nella selezione del negozio.')
+        
+    except Exception as e:
+        messages.error(request, f'Errore nella selezione del negozio: {str(e)}')
         return redirect('negozi:seleziona_negozio')
 
 def cerca_negozi_vicini(request):
