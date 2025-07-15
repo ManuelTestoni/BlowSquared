@@ -188,17 +188,3 @@ function chiudiDettaglio() {
     document.body.style.overflow = 'auto';
     negozioDaSelezionare = null;
 }
-
-// Chiudi popup cliccando fuori o con ESC
-document.addEventListener('click', function(e) {
-    const popup = document.getElementById('storePopup');
-    if (e.target === popup) {
-        chiudiDettaglio();
-    }
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        chiudiDettaglio();
-    }
-});

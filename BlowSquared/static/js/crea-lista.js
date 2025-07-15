@@ -68,8 +68,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function addProductToList(prodotto) {
         // Verifica se il prodotto è già nella lista
-        if (selectedProductsData.find(p => p.id === prodotto.id)) {
-            alert('Prodotto già aggiunto alla lista!');
+        const existingProductIndex = selectedProductsData.findIndex(p => p.id === prodotto.id);
+        
+        if (existingProductIndex !== -1) {
+            // Il prodotto è già presente, incrementa la quantità
+            incrementProductQuantity(existingProductIndex);
+            searchInput.value = '';
+            hideSearchResults();
             return;
         }
         
@@ -182,6 +187,46 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSelectedProductsDisplay();
     }
     
+    function incrementProductQuantity(index) {
+        // Trova l'input della quantità per questo prodotto
+        const quantityInput = document.getElementById(`quantity-${index}`);
+        
+        if (quantityInput) {
+            const currentQuantity = parseInt(quantityInput.value);
+            const maxQuantity = parseInt(quantityInput.getAttribute('max'));
+            
+            if (currentQuantity < maxQuantity) {
+                quantityInput.value = currentQuantity + 1;
+                
+                // Trigger change event per validazione
+                quantityInput.dispatchEvent(new Event('change'));
+                
+                // Mostra un feedback visivo
+                const productItem = quantityInput.closest('.selected-product-item');
+                productItem.style.backgroundColor = '#d4edda';
+                productItem.style.border = '2px solid #155724';
+                
+                setTimeout(() => {
+                    productItem.style.backgroundColor = '';
+                    productItem.style.border = '2px solid rgba(62, 116, 71, 0.1)';
+                }, 1000);
+            } else {
+                // Se ha raggiunto il massimo, mostra un avviso
+                alert(`Quantità massima raggiunta per questo prodotto: ${maxQuantity}`);
+                
+                // Feedback visivo per quantità massima
+                const productItem = quantityInput.closest('.selected-product-item');
+                productItem.style.backgroundColor = '#f8d7da';
+                productItem.style.border = '2px solid #721c24';
+                
+                setTimeout(() => {
+                    productItem.style.backgroundColor = '';
+                    productItem.style.border = '2px solid rgba(62, 116, 71, 0.1)';
+                }, 1000);
+            }
+        }
+    }
+
     // Nasconde risultati quando si clicca fuori
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {

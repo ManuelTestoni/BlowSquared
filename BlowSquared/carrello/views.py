@@ -161,18 +161,37 @@ def aggiungi_al_carrello(request, prodotto_id):
         
         # Ottieni la quantità dalla richiesta (default 1)
         quantita = int(request.POST.get('quantita', 1))
+        print(f"🔍 VALIDAZIONE BACKEND: Richiesta quantità {quantita} per prodotto {prodotto.nome}")
+        
         if quantita <= 0 or quantita > 99:
+            print(f"❌ Quantità non valida: {quantita}")
             return JsonResponse({'success': False, 'message': 'Quantità non valida'})
         
-        # Verifica che ci sia abbastanza stock
-        if quantita > stock_disponibile:
+        # Ottieni o crea il carrello per verificare la quantità già presente
+        carrello = Carrello.get_or_create_for_user(request.user)
+        
+        # Verifica se il prodotto è già nel carrello
+        try:
+            elemento_esistente = ElementoCarrello.objects.get(carrello=carrello, prodotto=prodotto)
+            quantita_gia_presente = elemento_esistente.quantita
+            print(f"📦 Prodotto già nel carrello: {quantita_gia_presente} pezzi")
+        except ElementoCarrello.DoesNotExist:
+            quantita_gia_presente = 0
+            print(f"📦 Prodotto non ancora nel carrello")
+        
+        # Calcola la quantità totale che si otterrebbe
+        quantita_totale = quantita + quantita_gia_presente
+        print(f"📊 Stock disponibile: {stock_disponibile}, quantità totale richiesta: {quantita_totale}")
+        
+        # Verifica che ci sia abbastanza stock considerando anche quello già nel carrello
+        if quantita_totale > stock_disponibile:
+            print(f"❌ STOCK INSUFFICIENTE: richiesti {quantita_totale}, disponibili {stock_disponibile}")
             return JsonResponse({
                 'success': False, 
-                'message': f'Disponibili solo {stock_disponibile} pezzi'
+                'message': f'Non ci sono abbastanza prodotti in magazzino. Disponibili: {stock_disponibile}, già nel carrello: {quantita_gia_presente}'
             })
         
-        # Ottieni o crea il carrello
-        carrello = Carrello.get_or_create_for_user(request.user)
+        print(f"✅ Validazione backend passata - procedo con l'aggiunta")
         
         # Aggiorna il negozio del carrello se necessario
         if carrello.negozio != profilo.negozio_preferito:
@@ -182,13 +201,8 @@ def aggiungi_al_carrello(request, prodotto_id):
         # Aggiungi il prodotto al carrello
         elemento = carrello.aggiungi_prodotto(prodotto, quantita)
         
-        # Verifica di nuovo lo stock dopo l'aggiunta
-        if elemento.quantita > stock_disponibile:
-            elemento.quantita = stock_disponibile
-            elemento.save()
-            messaggio = f'{prodotto.nome} aggiunto (quantità limitata a {stock_disponibile})'
-        else:
-            messaggio = f'{prodotto.nome} aggiunto al carrello'
+        # Messaggio di conferma
+        messaggio = f'{prodotto.nome} aggiunto al carrello'
         
         return JsonResponse({
             'success': True, 
@@ -304,22 +318,12 @@ def aggiorna_quantita_carrello(request, elemento_id):
 @login_required
 def svuota_carrello(request):
     """Vista per svuotare completamente il carrello"""
-    
-    print(f"🔍 SVUOTA CARRELLO DEBUG:")
-    print(f"   Metodo: {request.method}")
-    print(f"   Utente: {request.user.username}")
-    
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Metodo non permesso'})
     
     try:
         carrello = Carrello.get_or_create_for_user(request.user)
-        print(f"   Carrello ID: {carrello.id}")
-        print(f"   Elementi prima: {carrello.elementi.count()}")
-        
         carrello.svuota_carrello()
-        
-        print(f"   Elementi dopo: {carrello.elementi.count()}")
         
         return JsonResponse({
             'success': True, 
@@ -490,8 +494,11 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
             totale_finale=totale_finale,
         )
         
-        # Crea gli elementi dell'ordine
+        # Crea gli elementi dell'ordine e aggiorna lo stock
+        from negozi.models import DisponibilitaProdotto
+        
         for elemento in elementi_carrello:
+            # Crea l'elemento dell'ordine
             ElementoOrdine.objects.create(
                 ordine=ordine,
                 prodotto=elemento.prodotto,
@@ -499,6 +506,33 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
                 prezzo_unitario=elemento.prezzo_unitario,
                 sconto_applicato=elemento.sconto_applicato,
             )
+            
+            # Aggiorna lo stock del prodotto
+            print(f"📦 Aggiornamento stock per {elemento.prodotto.nome}: -{elemento.quantita}")
+            
+            # LOGICA UNIFICATA per aggiornare lo stock
+            try:
+                # Prova prima a aggiornare la disponibilità specifica per il negozio
+                disponibilita = DisponibilitaProdotto.objects.get(
+                    prodotto=elemento.prodotto,
+                    negozio=ordine.negozio
+                )
+                
+                if disponibilita.quantita_disponibile >= elemento.quantita:
+                    disponibilita.quantita_disponibile -= elemento.quantita
+                    disponibilita.save()
+                    print(f"✅ Stock negozio aggiornato: {disponibilita.quantita_disponibile}")
+                else:
+                    print(f"⚠️ Stock insufficiente in DisponibilitaProdotto")
+                    
+            except DisponibilitaProdotto.DoesNotExist:
+                # Se non esiste record di disponibilità specifica, aggiorna lo stock generale
+                if elemento.prodotto.stock >= elemento.quantita:
+                    elemento.prodotto.stock -= elemento.quantita
+                    elemento.prodotto.save()
+                    print(f"✅ Stock prodotto aggiornato: {elemento.prodotto.stock}")
+                else:
+                    print(f"⚠️ Stock insufficiente nel prodotto generale")
         
         # Svuota il carrello dopo l'ordine
         carrello.svuota_carrello()

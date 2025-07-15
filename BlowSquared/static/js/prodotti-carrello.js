@@ -5,67 +5,76 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Gestione pulsanti "Aggiungi al carrello" nella lista prodotti
     const addToCartButtons = document.querySelectorAll('.btn-add-cart');
-    console.log(`🔍 TROVATI ${addToCartButtons.length} pulsanti .btn-add-cart`);
+    
     
     addToCartButtons.forEach((button, index) => {
-        console.log(`   Pulsante ${index}: data-product-id="${button.dataset.productId}"`);
         button.addEventListener('click', function() {
-            console.log(`🖱️ CLICK su pulsante lista prodotti`);
             const prodottoId = this.dataset.productId;
             if (prodottoId && !this.disabled) {
                 aggiungiAlCarrello(prodottoId, 1, this);
-            } else {
-                console.log(`❌ Pulsante disabilitato o senza product-id`);
             }
         });
     });
     
     // Gestione pulsante "Aggiungi al carrello" nel dettaglio prodotto
     const addToCartDetailButton = document.querySelector('.btn-add-cart-detail');
-    console.log(`🔍 PULSANTE DETTAGLIO:`, addToCartDetailButton ? 'TROVATO' : 'NON TROVATO');
     
     if (addToCartDetailButton) {
         addToCartDetailButton.addEventListener('click', function() {
-            console.log(`🖱️ CLICK su pulsante dettaglio prodotto`);
             const prodottoId = this.dataset.productId;
             const quantityInput = document.getElementById('quantity');
             const quantita = quantityInput ? parseInt(quantityInput.value) : 1;
             
             if (prodottoId && !this.disabled && quantita > 0) {
                 aggiungiAlCarrello(prodottoId, quantita, this);
+            }
+        });
+    }
+    
+    // Validazione in tempo reale per l'input quantità
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        quantityInput.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            const max = parseInt(this.getAttribute('max'));
+            
+            if (value > max) {
+                this.style.borderColor = '#e74c3c';
+                if (typeof showNotification === 'function') {
+                    showNotification('Non ci sono abbastanza prodotti in magazzino', 'error');
+                }
             } else {
-                console.log(`❌ Pulsante dettaglio disabilitato o dati mancanti`);
+                this.style.borderColor = '';
             }
         });
     }
     
     // Carica il contatore del carrello all'avvio
     if (typeof loadCartCounter === 'function') {
-        console.log('📊 CARICO CONTATORE CARRELLO');
         loadCartCounter();
-    } else {
-        console.log('❌ FUNZIONE loadCartCounter NON DISPONIBILE');
     }
 });
 
 function aggiungiAlCarrello(prodottoId, quantita, button) {
-    console.log(`🛒 AGGIUNGI AL CARRELLO: Prodotto ${prodottoId}, Quantità ${quantita}`);
     
     // Verifica che le funzioni necessarie siano disponibili
     if (typeof getCookie !== 'function') {
-        console.error('❌ FUNZIONE getCookie NON DISPONIBILE');
         return;
     }
     if (typeof showNotification !== 'function') {
-        console.error('❌ FUNZIONE showNotification NON DISPONIBILE');
         return;
     }
     if (typeof updateCartCounter !== 'function') {
-        console.error('❌ FUNZIONE updateCartCounter NON DISPONIBILE');
         return;
     }
     
-    console.log('✅ Tutte le funzioni sono disponibili');
+    // Validazione della quantità prima di inviare la richiesta
+    console.log('🔍 Inizio validazione quantità');
+    if (!validateQuantityStock(prodottoId, quantita)) {
+        console.log('❌ Validazione fallita - richiesta bloccata');
+        return;
+    }
+    console.log('✅ Validazione passata - invio richiesta al server');
     
     // Disabilita il pulsante durante la richiesta
     const originalText = button.innerHTML;
@@ -74,7 +83,6 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
     
     // Ottieni il token CSRF
     const csrfToken = getCookie('csrftoken');
-    console.log(`🔑 CSRF Token:`, csrfToken ? 'PRESENTE' : 'MANCANTE');
     
     fetch(`/carrello/aggiungi/${prodottoId}/`, {
         method: 'POST',
@@ -86,11 +94,9 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
         body: `quantita=${quantita}`
     })
     .then(response => {
-        console.log(`📡 RISPOSTA SERVER:`, response.status);
         return response.json();
     })
     .then(data => {
-        console.log(`📦 DATI RISPOSTA:`, data);
         
         if (data.success) {
             // Mostra messaggio di successo
@@ -101,7 +107,6 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
             button.style.background = '#27ae60';
             
             // Aggiorna contatore carrello
-            console.log(`🔢 AGGIORNO CONTATORE: ${data.carrello_count}`);
             updateCartCounter(data.carrello_count);
             
             // Ripristina il pulsante dopo 2 secondi
@@ -112,7 +117,6 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
             }, 2000);
             
         } else {
-            console.log(`❌ ERRORE:`, data.message);
             // Mostra messaggio di errore
             if (data.redirect_login) {
                 // Per utenti non autenticati, mostra un messaggio specifico
@@ -136,6 +140,121 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
     });
 }
 
+// Funzione per validare la quantità richiesta contro lo stock disponibile
+function validateQuantityStock(prodottoId, quantita) {
+    console.log(`Validating quantity ${quantita} for product ${prodottoId}`);
+    
+    // Cerca le informazioni del prodotto nella pagina corrente
+    const productInfo = getProductStockInfo(prodottoId);
+    
+    if (!productInfo) {
+        console.log('No product stock info found, letting server handle validation');
+        // Se non trova le informazioni del prodotto, lascia che sia il server a gestire l'errore
+        return true;
+    }
+    
+    const stockDisponibile = productInfo.stock;
+    const quantitaGiaInCarrello = getQuantityInCart(prodottoId);
+    const quantitaTotale = quantita + quantitaGiaInCarrello;
+    
+    console.log(`Stock disponibile: ${stockDisponibile}, già nel carrello: ${quantitaGiaInCarrello}, totale richiesto: ${quantitaTotale}`);
+    
+    if (quantitaTotale > stockDisponibile) {
+        const messaggioErrore = `Non ci sono abbastanza prodotti in magazzino. Disponibili: ${stockDisponibile}, già nel carrello: ${quantitaGiaInCarrello}`;
+        
+        console.log(`Validation failed: ${messaggioErrore}`);
+        
+        if (typeof showNotification === 'function') {
+            showNotification(messaggioErrore, 'error');
+        } else {
+            alert(messaggioErrore);
+        }
+        
+        return false;
+    }
+    
+    console.log('Validation passed');
+    return true;
+}
+
+// Funzione per ottenere le informazioni di stock del prodotto dalla pagina
+function getProductStockInfo(prodottoId) {
+    // Cerca nelle card prodotto (lista prodotti)
+    const productCard = document.querySelector(`[data-product-id="${prodottoId}"]`);
+    if (productCard) {
+        // Cerca in diversi possibili selettori per lo stock
+        const stockSelectors = [
+            '.product-stock',
+            '.stock-info', 
+            '.stock-quantity',
+            '.stock-value',
+            '.disponibilità'
+        ];
+        
+        for (const selector of stockSelectors) {
+            const stockElement = productCard.querySelector(selector);
+            if (stockElement) {
+                const stockText = stockElement.textContent || stockElement.innerText;
+                console.log(`Stock text found: "${stockText}"`);
+                
+                // Cerca pattern diversi per estrarre il numero
+                const patterns = [
+                    /Stock:\s*(\d+)/i,
+                    /Disponibili:\s*(\d+)/i,
+                    /(\d+)\s*pezzi/i,
+                    /(\d+)\s*disponibili/i,
+                    /(\d+)/  // Fallback: qualsiasi numero
+                ];
+                
+                for (const pattern of patterns) {
+                    const match = stockText.match(pattern);
+                    if (match) {
+                        const stockValue = parseInt(match[1]);
+                        console.log(`Stock value extracted: ${stockValue}`);
+                        return { stock: stockValue };
+                    }
+                }
+            }
+        }
+    }
+    
+    // Cerca nella pagina dettaglio prodotto
+    const quantityInput = document.getElementById('quantity');
+    if (quantityInput) {
+        const maxStock = parseInt(quantityInput.getAttribute('max'));
+        if (maxStock) {
+            console.log(`Stock from quantity input max: ${maxStock}`);
+            return { stock: maxStock };
+        }
+    }
+    
+    // Cerca in elementi con classe stock-quantity
+    const stockElements = document.querySelectorAll('.stock-quantity, .stock-value');
+    for (const element of stockElements) {
+        const stockText = element.textContent || element.innerText;
+        const stockValue = parseInt(stockText);
+        if (!isNaN(stockValue)) {
+            console.log(`Stock from stock elements: ${stockValue}`);
+            return { stock: stockValue };
+        }
+    }
+    
+    console.log('No stock information found');
+    return null;
+}
+
+// Funzione per ottenere la quantità già presente nel carrello (se visualizzata)
+function getQuantityInCart(prodottoId) {
+    // Cerca se è visualizzata la quantità nel carrello per questo prodotto
+    const cartQuantityElement = document.querySelector(`[data-cart-product-id="${prodottoId}"] .cart-quantity`);
+    if (cartQuantityElement) {
+        return parseInt(cartQuantityElement.textContent) || 0;
+    }
+    
+    // Se non trova informazioni, assume 0
+    return 0;
+}
+
 // Le funzioni getCookie, updateCartCounter, showNotification e loadCartCounter 
 // sono definite in carrello.js per evitare duplicazioni
 
@@ -149,6 +268,13 @@ function changeQuantity(delta) {
         
         if (newValue >= min && newValue <= max) {
             quantityInput.value = newValue;
+        } else if (newValue > max) {
+            // Mostra messaggio di errore se supera il massimo
+            if (typeof showNotification === 'function') {
+                showNotification('Non ci sono abbastanza prodotti in magazzino', 'error');
+            } else {
+                alert('Non ci sono abbastanza prodotti in magazzino');
+            }
         }
     }
 }

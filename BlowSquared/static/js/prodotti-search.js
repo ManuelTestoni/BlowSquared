@@ -1,3 +1,4 @@
+// Mi salvo nelle mie variabili gli elementi del DOM che mi servono.
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');
     const categoriaFilter = document.getElementById('categoria-filter');

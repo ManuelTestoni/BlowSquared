@@ -2,7 +2,7 @@
 
 class VolantinoViewer {
     constructor() {
-        this.currentPage = 1;
+        this.currentPage = 0;
         this.totalPages = parseInt(document.getElementById('totalPages').textContent);
         this.isZoomed = false;
         this.flipbookPages = document.getElementById('flipbookPages');
@@ -16,33 +16,6 @@ class VolantinoViewer {
         this.updatePageDisplay();
         this.setupKeyboardNavigation();
         this.setupTouchGestures();
-        this.debugImages(); // Aggiunto debug
-    }
-    
-    debugImages() {
-        console.log('=== DEBUG VOLANTINO VIEWER ===');
-        console.log(`Pagine totali: ${this.totalPages}`);
-        
-        const pages = document.querySelectorAll('.flipbook-page');
-        pages.forEach((page, index) => {
-            const img = page.querySelector('.page-image');
-            const pageNum = page.dataset.page;
-            
-            console.log(`Pagina ${index + 1} (data-page: ${pageNum}):`);
-            console.log(`  - Immagine src: ${img ? img.src : 'N/A'}`);
-            console.log(`  - Immagine caricata: ${img ? img.complete : 'N/A'}`);
-            
-            if (img) {
-                img.addEventListener('load', () => {
-                    console.log(`✓ Pagina ${pageNum} caricata con successo`);
-                });
-                
-                img.addEventListener('error', (e) => {
-                    console.error(`✗ Errore caricamento pagina ${pageNum}:`, e);
-                    console.error(`  URL fallito: ${img.src}`);
-                });
-            }
-        });
     }
     
     setupEventListeners() {
