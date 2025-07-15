@@ -1,7 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
-import math
 
 class Negozio(models.Model):
     """Modello per i punti vendita della catena BlowSquared"""

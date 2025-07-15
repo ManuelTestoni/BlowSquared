@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
             
             // Qui andrà la logica per aggiungere al carrello
-            console.log(`Aggiungendo ${quantity} unità del prodotto ${productId} al carrello`);
         });
     }
 });

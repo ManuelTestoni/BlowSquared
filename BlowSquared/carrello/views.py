@@ -161,10 +161,8 @@ def aggiungi_al_carrello(request, prodotto_id):
         
         # Ottieni la quantità dalla richiesta (default 1)
         quantita = int(request.POST.get('quantita', 1))
-        print(f"🔍 VALIDAZIONE BACKEND: Richiesta quantità {quantita} per prodotto {prodotto.nome}")
         
         if quantita <= 0 or quantita > 99:
-            print(f"❌ Quantità non valida: {quantita}")
             return JsonResponse({'success': False, 'message': 'Quantità non valida'})
         
         # Ottieni o crea il carrello per verificare la quantità già presente
@@ -174,24 +172,18 @@ def aggiungi_al_carrello(request, prodotto_id):
         try:
             elemento_esistente = ElementoCarrello.objects.get(carrello=carrello, prodotto=prodotto)
             quantita_gia_presente = elemento_esistente.quantita
-            print(f"📦 Prodotto già nel carrello: {quantita_gia_presente} pezzi")
         except ElementoCarrello.DoesNotExist:
             quantita_gia_presente = 0
-            print(f"📦 Prodotto non ancora nel carrello")
         
         # Calcola la quantità totale che si otterrebbe
         quantita_totale = quantita + quantita_gia_presente
-        print(f"📊 Stock disponibile: {stock_disponibile}, quantità totale richiesta: {quantita_totale}")
         
         # Verifica che ci sia abbastanza stock considerando anche quello già nel carrello
         if quantita_totale > stock_disponibile:
-            print(f"❌ STOCK INSUFFICIENTE: richiesti {quantita_totale}, disponibili {stock_disponibile}")
             return JsonResponse({
                 'success': False, 
                 'message': f'Non ci sono abbastanza prodotti in magazzino. Disponibili: {stock_disponibile}, già nel carrello: {quantita_gia_presente}'
             })
-        
-        print(f"✅ Validazione backend passata - procedo con l'aggiunta")
         
         # Aggiorna il negozio del carrello se necessario
         if carrello.negozio != profilo.negozio_preferito:
@@ -332,7 +324,6 @@ def svuota_carrello(request):
         })
         
     except Exception as e:
-        print(f"   ❌ Errore: {str(e)}")
         return JsonResponse({
             'success': False, 
             'message': f'Errore nello svuotamento: {str(e)}'
@@ -358,11 +349,6 @@ def api_cart_count(request):
 @login_required
 def checkout(request):
     """Vista per la pagina di checkout"""
-    
-    # Debug del metodo
-    print(f"Checkout method: {request.method}")
-    if request.method == 'POST':
-        print(f"POST data: {dict(request.POST)}")
     
     # Verifica che l'utente abbia selezionato un negozio
     try:
@@ -408,7 +394,6 @@ def checkout(request):
     
     # Gestione del form POST (quando viene completato il checkout)
     if request.method == 'POST':
-        print("Processing order...")
         return process_order(request, carrello, elementi_carrello, subtotale, costo_spedizione, totale_finale)
     
     context = {
@@ -508,8 +493,6 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
             )
             
             # Aggiorna lo stock del prodotto
-            print(f"📦 Aggiornamento stock per {elemento.prodotto.nome}: -{elemento.quantita}")
-            
             # LOGICA UNIFICATA per aggiornare lo stock
             try:
                 # Prova prima a aggiornare la disponibilità specifica per il negozio
@@ -521,18 +504,12 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
                 if disponibilita.quantita_disponibile >= elemento.quantita:
                     disponibilita.quantita_disponibile -= elemento.quantita
                     disponibilita.save()
-                    print(f"✅ Stock negozio aggiornato: {disponibilita.quantita_disponibile}")
-                else:
-                    print(f"⚠️ Stock insufficiente in DisponibilitaProdotto")
                     
             except DisponibilitaProdotto.DoesNotExist:
                 # Se non esiste record di disponibilità specifica, aggiorna lo stock generale
                 if elemento.prodotto.stock >= elemento.quantita:
                     elemento.prodotto.stock -= elemento.quantita
                     elemento.prodotto.save()
-                    print(f"✅ Stock prodotto aggiornato: {elemento.prodotto.stock}")
-                else:
-                    print(f"⚠️ Stock insufficiente nel prodotto generale")
         
         # Svuota il carrello dopo l'ordine
         carrello.svuota_carrello()
@@ -544,7 +521,6 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
         return redirect('carrello:ordine_completato', codice_ordine=ordine.codice_ordine)
         
     except Exception as e:
-        print(f"Errore creazione ordine: {e}")  # Debug
         messages.error(request, f'Errore durante la creazione dell\'ordine. Riprova.')
         return redirect('carrello:checkout')
 

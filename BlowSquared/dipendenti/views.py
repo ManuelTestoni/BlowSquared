@@ -122,18 +122,15 @@ def aggiorna_quantita(request, prodotto_id):
             # Controlla se è un prodotto comune o specifico del negozio
             if not prodotto.negozi.exists():
                 # È un prodotto COMUNE - aggiorna solo lo stock generale
-                print(f"📦 Prodotto comune: aggiornamento stock generale a {nuova_quantita}")
                 prodotto.stock = nuova_quantita
                 prodotto.save(update_fields=['stock'])
                 
                 # Rimuovi eventuali record specifici di DisponibilitaProdotto per questo prodotto
                 # perché per i prodotti comuni dovrebbe essere usato sempre prodotto.stock
                 DisponibilitaProdotto.objects.filter(prodotto=prodotto).delete()
-                print(f"✅ Rimossi record DisponibilitaProdotto per prodotto comune")
                 
             else:
                 # È un prodotto SPECIFICO del negozio - aggiorna sia stock generale che disponibilità specifica
-                print(f"📦 Prodotto specifico del negozio: aggiornamento completo a {nuova_quantita}")
                 
                 # Aggiorna lo stock generale
                 prodotto.stock = nuova_quantita
@@ -150,12 +147,7 @@ def aggiorna_quantita(request, prodotto_id):
                     disponibilita.quantita_disponibile = nuova_quantita
                     disponibilita.save()
                 
-                print(f"✅ Stock aggiornato per prodotto specifico nel negozio {dipendente.negozio.nome}: {nuova_quantita}")
-                
-            print(f"✅ Aggiornamento completato per {prodotto.nome}: stock generale = {prodotto.stock}")
-            
         except Exception as e:
-            print(f"⚠️ Errore durante l'aggiornamento: {e}")
             # Fallback: almeno aggiorna lo stock generale
             prodotto.stock = nuova_quantita
             prodotto.save(update_fields=['stock'])

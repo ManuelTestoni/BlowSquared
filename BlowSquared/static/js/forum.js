@@ -72,7 +72,6 @@ class ForumChat {
     connectWebSocket() {
         // Per ora usiamo solo la modalità REST API
         // Il WebSocket sarà implementato successivamente quando installiamo Redis
-        console.log('Modalità API REST attiva');
         this.isConnected = true;
         this.updateConnectionStatus(true);
     }

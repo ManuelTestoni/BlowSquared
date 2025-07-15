@@ -225,9 +225,6 @@ function validateForm() {
         isValid = false;
     }
     
-    // Debug: stampa errori in console
-    console.log('Validazione form:', { isValid, errors });
-    
     // Mostra errori
     showValidationErrors(errors);
     
@@ -239,15 +236,12 @@ function setupFormValidation() {
     
     if (form) {
         form.addEventListener('submit', function(e) {
-            console.log('Submit form triggered');
             
             if (!validateForm()) {
-                console.log('Validazione fallita, submit bloccato');
                 e.preventDefault();
                 return false;
             }
             
-            console.log('Validazione passata, submit procede');
             // Aggiungi un loading state al pulsante
             const submitBtn = document.querySelector('.btn-complete-order');
             if (submitBtn) {

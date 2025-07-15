@@ -149,5 +149,4 @@ def api_invia_messaggio(request):
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Dati JSON non validi'})
     except Exception as e:
-        print(f"Errore API invia messaggio: {e}")  # Debug
         return JsonResponse({'success': False, 'error': f'Errore server: {str(e)}'})

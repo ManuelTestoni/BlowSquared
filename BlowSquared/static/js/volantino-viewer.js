@@ -100,8 +100,6 @@ class VolantinoViewer {
     goToPage(pageNumber) {
         if (pageNumber < 1 || pageNumber > this.totalPages) return;
         
-        console.log(`Navigando alla pagina ${pageNumber}`);
-        
         this.currentPage = pageNumber;
         this.updatePageDisplay();
         this.updateThumbnails();
@@ -110,8 +108,6 @@ class VolantinoViewer {
         // Smooth scroll animation
         const translateX = -((pageNumber - 1) * 100);
         this.flipbookPages.style.transform = `translateX(${translateX}%)`;
-        
-        console.log(`Transform applicato: translateX(${translateX}%)`);
         
         // Add page flip animation class
         this.flipbookPages.classList.add('flipping');
@@ -237,7 +233,7 @@ class VolantinoViewer {
         
         if (!document.fullscreenElement) {
             container.requestFullscreen().catch(err => {
-                console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                // Error handling for fullscreen
             });
         } else {
             document.exitFullscreen();

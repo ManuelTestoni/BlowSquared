@@ -1,7 +1,6 @@
 // JavaScript per aggiungere prodotti al carrello
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 PRODOTTI-CARRELLO.JS CARICATO');
     
     // Gestione pulsanti "Aggiungi al carrello" nella lista prodotti
     const addToCartButtons = document.querySelectorAll('.btn-add-cart');
@@ -69,12 +68,9 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
     }
     
     // Validazione della quantità prima di inviare la richiesta
-    console.log('🔍 Inizio validazione quantità');
     if (!validateQuantityStock(prodottoId, quantita)) {
-        console.log('❌ Validazione fallita - richiesta bloccata');
         return;
     }
-    console.log('✅ Validazione passata - invio richiesta al server');
     
     // Disabilita il pulsante durante la richiesta
     const originalText = button.innerHTML;
@@ -142,13 +138,10 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
 
 // Funzione per validare la quantità richiesta contro lo stock disponibile
 function validateQuantityStock(prodottoId, quantita) {
-    console.log(`Validating quantity ${quantita} for product ${prodottoId}`);
-    
     // Cerca le informazioni del prodotto nella pagina corrente
     const productInfo = getProductStockInfo(prodottoId);
     
     if (!productInfo) {
-        console.log('No product stock info found, letting server handle validation');
         // Se non trova le informazioni del prodotto, lascia che sia il server a gestire l'errore
         return true;
     }
@@ -157,12 +150,8 @@ function validateQuantityStock(prodottoId, quantita) {
     const quantitaGiaInCarrello = getQuantityInCart(prodottoId);
     const quantitaTotale = quantita + quantitaGiaInCarrello;
     
-    console.log(`Stock disponibile: ${stockDisponibile}, già nel carrello: ${quantitaGiaInCarrello}, totale richiesto: ${quantitaTotale}`);
-    
     if (quantitaTotale > stockDisponibile) {
         const messaggioErrore = `Non ci sono abbastanza prodotti in magazzino. Disponibili: ${stockDisponibile}, già nel carrello: ${quantitaGiaInCarrello}`;
-        
-        console.log(`Validation failed: ${messaggioErrore}`);
         
         if (typeof showNotification === 'function') {
             showNotification(messaggioErrore, 'error');
@@ -173,7 +162,6 @@ function validateQuantityStock(prodottoId, quantita) {
         return false;
     }
     
-    console.log('Validation passed');
     return true;
 }
 
@@ -195,7 +183,6 @@ function getProductStockInfo(prodottoId) {
             const stockElement = productCard.querySelector(selector);
             if (stockElement) {
                 const stockText = stockElement.textContent || stockElement.innerText;
-                console.log(`Stock text found: "${stockText}"`);
                 
                 // Cerca pattern diversi per estrarre il numero
                 const patterns = [
@@ -210,7 +197,6 @@ function getProductStockInfo(prodottoId) {
                     const match = stockText.match(pattern);
                     if (match) {
                         const stockValue = parseInt(match[1]);
-                        console.log(`Stock value extracted: ${stockValue}`);
                         return { stock: stockValue };
                     }
                 }
@@ -223,7 +209,6 @@ function getProductStockInfo(prodottoId) {
     if (quantityInput) {
         const maxStock = parseInt(quantityInput.getAttribute('max'));
         if (maxStock) {
-            console.log(`Stock from quantity input max: ${maxStock}`);
             return { stock: maxStock };
         }
     }
@@ -234,12 +219,10 @@ function getProductStockInfo(prodottoId) {
         const stockText = element.textContent || element.innerText;
         const stockValue = parseInt(stockText);
         if (!isNaN(stockValue)) {
-            console.log(`Stock from stock elements: ${stockValue}`);
             return { stock: stockValue };
         }
     }
     
-    console.log('No stock information found');
     return null;
 }
 

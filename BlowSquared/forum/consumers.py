@@ -134,7 +134,6 @@ class ForumConsumer(AsyncWebsocketConsumer):
             return MessaggioForum.objects.create(**messaggio_data)
             
         except Exception as e:
-            print(f"Errore creazione messaggio: {e}")
             return None
     
     @database_sync_to_async
