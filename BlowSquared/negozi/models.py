@@ -44,20 +44,6 @@ class Negozio(models.Model):
         help_text="Nazione del negozio"
     )
     
-    # Coordinate geografiche
-    latitudine = models.DecimalField(
-        max_digits=10,
-        decimal_places=7,
-        validators=[MinValueValidator(Decimal('-90')), MaxValueValidator(Decimal('90'))],
-        help_text="Coordinate GPS - Latitudine (es: 44.6471700)"
-    )
-    longitudine = models.DecimalField(
-        max_digits=10,
-        decimal_places=7,
-        validators=[MinValueValidator(Decimal('-180')), MaxValueValidator(Decimal('180'))],
-        help_text="Coordinate GPS - Longitudine (es: 10.9251400)"
-    )
-    
     # Informazioni operative
     telefono = models.CharField(
         max_length=20,
@@ -125,7 +111,7 @@ class Negozio(models.Model):
     )
     
     # Dati amministrativi
-    direttore_nome = models.CharField(  # RINOMINATO DA 'direttore' A 'direttore_nome'
+    direttore_nome = models.CharField(
         max_length=100,
         blank=True,
         null=True,
@@ -156,26 +142,6 @@ class Negozio(models.Model):
         """Restituisce l'indirizzo completo formattato"""
         return f"{self.indirizzo}, {self.cap} {self.citta} ({self.provincia})"
     
-    @property
-    def coordinate(self):
-        """Restituisce le coordinate come tupla"""
-        return (float(self.latitudine), float(self.longitudine))
-    
-    def distanza_da(self, lat, lng):
-        """Calcola la distanza in km da un punto specificato usando la formula di Haversine"""
-        R = 6371  # Raggio della Terra in km
-        
-        lat1, lon1 = math.radians(float(self.latitudine)), math.radians(float(self.longitudine))
-        lat2, lon2 = math.radians(lat), math.radians(lng)
-        
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-        
-        a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-        c = 2 * math.asin(math.sqrt(a))
-        
-        return R * c
-    
     def prodotti_disponibili(self):
         """Restituisce il queryset dei prodotti disponibili in questo negozio"""
         from prodotti.models import Prodotto
@@ -201,8 +167,6 @@ class Negozio(models.Model):
         
         if isinstance(orari_oggi, str) and "chiuso" in orari_oggi.lower():
             return False
-        
-        # Logica semplificata - da implementare parsing orari
         return True  # Placeholder
 
 
@@ -243,18 +207,6 @@ class DisponibilitaProdotto(models.Model):
         blank=True,
         null=True,
         help_text="Settore del negozio (es: 'Fresco', 'Secco', 'Surgelati')"
-    )
-    corridoio = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="Numero corridoio o zona specifica"
-    )
-    scaffale = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        help_text="Identificativo scaffale"
     )
     
     # Informazioni commerciali specifiche del negozio
@@ -345,8 +297,3 @@ class DisponibilitaProdotto(models.Model):
         
         return " - ".join(posizione) if posizione else "Posizione non specificata"
     
-    def giorni_autonomia(self):
-        """Calcola i giorni di autonomia basati sulle vendite medie"""
-        if self.vendite_giornaliere_media > 0:
-            return float(self.quantita_disponibile) / float(self.vendite_giornaliere_media)
-        return float('inf')

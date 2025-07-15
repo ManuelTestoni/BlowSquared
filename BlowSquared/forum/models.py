@@ -5,12 +5,14 @@ from prodotti.models import Prodotto
 import json
 
 class MessaggioForum(models.Model):
+    #Operazioni disponibili nel forum
     TIPO_CHOICES = [
         ('chat', 'Messaggio Chat'),
         ('recensione', 'Recensione Negozio'),
         ('ricetta', 'Ricetta'),
     ]
     
+    #Scala di valutazione per le recensioni
     STELLE_CHOICES = [
         (1, '⭐'),
         (2, '⭐⭐'),
@@ -130,5 +132,4 @@ class MessaggioForum(models.Model):
                 'note_ricetta': self.note_ricetta,
             })
         
-        return data
         return data

@@ -47,10 +47,6 @@ class Carrello(models.Model):
         """Restituisce il numero totale di articoli nel carrello"""
         return sum(item.quantita for item in self.elementi.all())
     
-    @property
-    def numero_prodotti(self):
-        """Restituisce il numero totale di prodotti nel carrello (somma delle quantità)"""
-        return sum(elemento.quantita for elemento in self.elementi.all())
     
     @property
     def numero_prodotti_unici(self):

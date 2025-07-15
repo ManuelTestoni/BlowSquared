@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-from prodotti.models import Prodotto
-from decimal import Decimal
-import math
+
+
 
 # Estendo il profilo utente per includere posizione
 class ProfiloUtente(models.Model):
@@ -216,14 +215,6 @@ class ElementoLista(models.Model):
         choices = dict(self._meta.get_field('priorita').choices)
         return choices.get(self.priorita, 'Normale')
     
-    def get_priorita_display_emoji(self):
-        """Restituisce emoji per la priorità"""
-        emoji_map = {
-            0: '📝',  # Normale
-            1: '⚠️',  # Alta
-            2: '🚨',  # Urgente
-        }
-        return emoji_map.get(self.priorita, '📝')
 
 
 class ListaCondivisa(models.Model):
@@ -260,8 +251,6 @@ class ListaCondivisa(models.Model):
         
     def __str__(self):
         return f"{self.lista.nome} condivisa con {self.utente_condiviso.username}"
-        return f"{self.lista.nome} condivisa con {self.utente_condiviso.username}"
-        related_name='condivisioni'
 
     utente_condiviso = models.ForeignKey(
         User, 

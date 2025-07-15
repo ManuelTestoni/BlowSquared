@@ -4,8 +4,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from functools import wraps
 from .models import Negozio, DisponibilitaProdotto
+import datetime
 
 
+#Come prima ci assicuriamo che i dipendenti e dirigeti non vedano queste pagine del sito.
 def dipendente_non_allowed(view_func):
     """
     Decorator che blocca l'accesso ai dipendenti e dirigenti mostrando la pagina 404.
@@ -17,8 +19,6 @@ def dipendente_non_allowed(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
-def index(request):
-    return render(request, 'negozi/index.html')
 
 @dipendente_non_allowed
 def lista_negozi(request):
@@ -176,6 +176,10 @@ def seleziona_negozio_preferito(request, negozio_id):
                         return render(request, 'negozi/conferma_cambio_negozio.html', context)
                     
                     # Se ha confermato, svuota il carrello
+                    # Questa logica ci serve perchè ogni negozio ha un carosello di prodotti differente.
+                    # Permettere all'utente di comprare un prodotto da un negozio e un prodotto da un altro
+                    # non è uno scenario fattibile nella vita reale, dato che dovrebbero partire due ordini in base alle
+                    # disponibilità dei magazzini.
                     if conferma == 'si':
                         carrello.svuota_carrello()
                         messages.warning(request, f'Il carrello è stato svuotato per il cambio da "{negozio_precedente.nome}" a "{negozio.nome}".')
@@ -290,7 +294,6 @@ def dettaglio_completo_negozio(request, negozio_id):
         orari_formattati[giorno_nome] = orario
     
     # Determina il giorno di oggi
-    import datetime
     oggi_index = datetime.date.today().weekday()
     oggi_nome = list(giorni_settimana.values())[oggi_index]
     

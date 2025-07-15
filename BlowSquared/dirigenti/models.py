@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from negozi.models import Negozio
 
 class Dirigente(models.Model):
     LIVELLI_ACCESSO = [
@@ -73,7 +74,7 @@ class Dirigente(models.Model):
     def get_negozi_accessibili(self):
         """Restituisce tutti i negozi a cui ha accesso"""
         if self.livello_accesso in ['direttore_generale', 'vice_direttore']:
-            from negozi.models import Negozio
+            
             return Negozio.objects.all()
         
         # Per manager di area e direttori di negozio
@@ -83,16 +84,3 @@ class Dirigente(models.Model):
         
         return Negozio.objects.filter(id__in=negozi_ids)
     
-    @property
-    def numero_negozi_gestiti(self):
-        """Restituisce il numero di negozi gestiti"""
-        return self.get_negozi_accessibili().count()
-    
-    def can_manage_dipendenti(self):
-        """Verifica se può gestire i dipendenti"""
-        return self.livello_accesso in ['direttore_generale', 'vice_direttore', 'manager_area']
-    
-    def can_view_financials(self):
-        """Verifica se può vedere i dati finanziari"""
-        return self.livello_accesso in ['direttore_generale', 'vice_direttore']
-        return self.livello_accesso in ['direttore_generale', 'vice_direttore']

@@ -5,13 +5,12 @@ from .forms import ProdottoForm
 from prodotti.models import Prodotto
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.db import models
+
 
 @login_required
 def dashboard_dipendente(request):
     dipendente = get_object_or_404(Dipendente, user=request.user)
     
-    # LOGICA UNIFICATA - Prodotti per negozio specifico (condivisa con vista clienti)
     # Metodo 1: Prodotti specifici del negozio
     prodotti_negozio = Prodotto.objects.filter(negozi=dipendente.negozio)
     
@@ -36,7 +35,8 @@ def aggiungi_prodotto(request):
             prodotto.stock = form.cleaned_data['quantita']
             prodotto.save()
             
-            # IMPORTANTE: Associa il prodotto SOLO al negozio del dipendente
+            # Aggiungiamo il prodotto solamente al negozio del dipendente,
+            # sennò creeremmo un prodotto comune.
             prodotto.negozi.add(dipendente.negozio)
             
             messages.success(request, f'Prodotto "{prodotto.nome}" aggiunto con successo al catalogo di {dipendente.negozio.nome}!')
@@ -50,8 +50,6 @@ def aggiungi_prodotto(request):
 @login_required
 def aggiorna_quantita(request, prodotto_id):
     dipendente = get_object_or_404(Dipendente, user=request.user)
-    
-    # LOGICA CORRETTA: Verifica usando il campo ManyToMany
     prodotti_negozio = Prodotto.objects.filter(negozi=dipendente.negozio)
     prodotti_comuni = Prodotto.objects.filter(negozi__isnull=True)
     prodotti_accessibili = (prodotti_negozio | prodotti_comuni).distinct()
@@ -73,7 +71,7 @@ def aggiorna_quantita(request, prodotto_id):
                     'negozio': dipendente.negozio
                 })
             
-            # Controlli di validazione
+            # Controlli di validazione custom
             if quantita < 0:
                 messages.error(request, 'La quantità non può essere negativa.')
                 return render(request, 'dipendenti/aggiorna_quantita.html', {
@@ -111,8 +109,8 @@ def aggiorna_quantita(request, prodotto_id):
                 })
             
             # Controllo finale sulla quantità massima
-            if nuova_quantita > 9999:
-                messages.error(request, 'La quantità massima consentita è 9999.')
+            if nuova_quantita > 250:
+                messages.error(request, 'La quantità massima consentita è 250.')
                 return render(request, 'dipendenti/aggiorna_quantita.html', {
                     'prodotto': prodotto, 
                     'negozio': dipendente.negozio

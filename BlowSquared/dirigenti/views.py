@@ -3,12 +3,12 @@ from django.contrib.auth.decorators import login_required
 from .models import Dirigente
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.db.models import Count, Sum, Avg
+from django.db.models import Count, Sum
 from prodotti.models import Prodotto
 from dipendenti.models import Dipendente
 from carrello.models import Ordine
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 import json
 from django.http import JsonResponse
 
@@ -94,7 +94,7 @@ def dashboard_dirigente(request):
         labels_giorni.append(giorno.strftime('%d/%m'))
     
     # Prodotti più venduti (SOLO per il negozio del dirigente + prodotti comuni)
-    from django.db.models import F
+    
     try:
         # Unisce prodotti specifici del negozio + prodotti comuni
         prodotti_accessibili = (prodotti_negozio | prodotti_comuni).distinct()

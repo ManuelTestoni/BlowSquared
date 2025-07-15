@@ -9,7 +9,7 @@ from negozi.models import Negozio
 from prodotti.models import Prodotto
 from .models import MessaggioForum
 
-
+#VIew che ci permette di redirectare chi non ha i permerssi necessari
 def dipendente_non_allowed(view_func):
     """
     Decorator che blocca l'accesso ai dipendenti e dirigenti mostrando la pagina 404.
