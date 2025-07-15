@@ -22,7 +22,6 @@ BlowSquared è una web app Django completa per la gestione di una catena di supe
 - Visualizzazione offerte e promozioni
 
 **✅ Navigazione Supermercati per Zona**
-- Ricerca negozi per posizione geografica
 - Visualizzazione dettagliata: orari, servizi, contatti
 - Info complete: superficie, parcheggi, casse disponibili  
 - Filtri per città e provincia
@@ -54,13 +53,11 @@ BlowSquared è una web app Django completa per la gestione di una catena di supe
 **✅ Cronologia Ordini**
 - Storico completo degli ordini effettuati
 - Dettagli ordine con prodotti, quantità, prezzi
-- Stato ordine e tracking
 
 **✅ Forum Community**
 - **Discussioni collettive**: Chat in tempo reale tra utenti
 - **Condivisione ricette**: Ricette con ingredienti collegati ai prodotti
 - **Recensioni negozi**: Valutazioni con stelle e commenti
-- **Sistema WebSocket**: Messaggi in tempo reale
 
 ---
 
@@ -127,7 +124,6 @@ BlowSquared è una web app Django completa per la gestione di una catena di supe
 ### **Features Avanzate**
 - **WebSocket**: Chat forum in tempo reale
 - **File Upload**: Gestione immagini prodotti
-- **Geolocalizzazione**: Ricerca negozi per zona
 - **Responsive Design**: Ottimizzato per tutti i device
 - **Sessioni temporanee**: Utenti anonimi possono selezionare negozi temporaneamente
 - **UX ottimizzata**: Messaggi informativi invece di redirect al login per utenti non autenticati
