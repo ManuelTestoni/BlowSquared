@@ -215,6 +215,15 @@ class ElementoLista(models.Model):
         choices = dict(self._meta.get_field('priorita').choices)
         return choices.get(self.priorita, 'Normale')
     
+    def get_priorita_display_emoji(self):
+        """Restituisce l'emoji corrispondente alla priorità"""
+        emoji_map = {
+            0: '📝',  # Normale
+            1: '⚡',  # Alta
+            2: '🚨'   # Urgente
+        }
+        return emoji_map.get(self.priorita, '📝')
+    
 
 
 class ListaCondivisa(models.Model):

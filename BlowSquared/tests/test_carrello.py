@@ -68,7 +68,7 @@ class CarrelloViewTest(BaseTestCase):
         response = self.client.get(reverse('carrello:visualizza'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Il tuo carrello è vuoto')
+        self.assertContains(response, 'Il Tuo Carrello è Vuoto')
     
     def test_aggiungi_prodotto_carrello_ajax(self):
         """Test aggiunta prodotto al carrello via AJAX"""
@@ -157,7 +157,7 @@ class CarrelloViewTest(BaseTestCase):
         data = json.loads(response.content)
         
         self.assertFalse(data['success'])
-        self.assertIn('non disponibile', data['message'].lower())
+        self.assertIn('non è disponibile', data['message'].lower())
 
 
 class CarrelloPermissionTest(BaseTestCase):

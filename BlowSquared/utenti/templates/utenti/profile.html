@@ -334,6 +334,7 @@
 
 {% block extra_js %}
 <script src="{% static 'js/profile.js' %}"></script>
+<script src="{% static 'js/liste-popup.js' %}"></script>
 <script>
 // Funzione per ottenere il token CSRF
 function getCsrfToken() {
@@ -468,95 +469,7 @@ function aggiungiListaAlCarrello(listaId) {
     });
 }
 
-// Funzioni JavaScript per le liste
-function visualizzaLista(listaId) {
-    fetch(`/utenti/liste-spesa/${listaId}/visualizza/`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Popola il popup con i dati della lista
-            document.getElementById('popupListaNome').textContent = data.lista.nome;
-            
-            // Info della lista
-            const infoHtml = `
-                <div class="info-grid">
-                    <div class="info-stat">
-                        <span class="stat-value">${data.lista.numero_prodotti}</span>
-                        <span class="stat-label">Prodotti</span>
-                    </div>
-                    <div class="info-stat">
-                        <span class="stat-value">${data.lista.quantita_totale}</span>
-                        <span class="stat-label">Quantità Totale</span>
-                    </div>
-                    <div class="info-stat">
-                        <span class="stat-value">€${data.lista.prezzo_stimato}</span>
-                        <span class="stat-label">Prezzo Stimato</span>
-                    </div>
-                </div>
-                ${data.lista.descrizione ? `<p><strong>Descrizione:</strong> ${data.lista.descrizione}</p>` : ''}
-            `;
-            document.getElementById('popupListaInfo').innerHTML = infoHtml;
-            
-            // Elementi della lista
-            let elementiHtml = '';
-            if (data.elementi.length > 0) {
-                data.elementi.forEach(elemento => {
-                    elementiHtml += `
-                        <div class="elemento-item">
-                            <div class="elemento-info">
-                                <h5>${elemento.nome}</h5>
-                                <div class="elemento-details">${elemento.marca} - ${elemento.categoria}</div>
-                            </div>
-                            <div class="elemento-meta">
-                                <div class="elemento-quantita">x${elemento.quantita}</div>
-                                <div class="elemento-prezzo">€${elemento.prezzo_totale}</div>
-                                <span class="elemento-priorita">${elemento.priorita_emoji}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                elementiHtml = '<p>Nessun prodotto nella lista</p>';
-            }
-            document.getElementById('popupListaElementi').innerHTML = elementiHtml;
-            
-            // Mostra il popup
-            document.getElementById('listaPopup').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        } else {
-            alert('Errore nel caricamento della lista');
-        }
-    })
-    .catch(error => {
-        console.error('Errore:', error);
-        alert('Errore di rete');
-    });
-}
-
-function chiudiPopupLista() {
-    document.getElementById('listaPopup').style.display = 'none';
-    document.body.style.overflow = 'auto';
-}
-
-// Chiudi popup cliccando fuori
-document.addEventListener('click', function(e) {
-    const popup = document.getElementById('listaPopup');
-    if (e.target === popup) {
-        chiudiPopupLista();
-    }
-});
-
-// Chiudi popup con ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        chiudiPopupLista();
-    }
-});
+// Le funzioni per le liste sono ora in liste-popup.js
 
 // Funzione per mostrare notifiche
 function showNotification(message, type) {

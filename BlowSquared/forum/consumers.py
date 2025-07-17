@@ -27,10 +27,10 @@ class ForumConsumer(AsyncWebsocketConsumer):
         
         # Invia messaggi recenti all'utente che si connette
         messaggi_recenti = await self.get_messaggi_recenti()
-        for messaggio in messaggi_recenti:
+        for messaggio_data in messaggi_recenti:
             await self.send(text_data=json.dumps({
                 'tipo': 'messaggio_storico',
-                'messaggio': messaggio
+                'messaggio': messaggio_data
             }))
     
     async def disconnect(self, close_code):
@@ -58,11 +58,12 @@ class ForumConsumer(AsyncWebsocketConsumer):
         )
         
         if messaggio:
+            messaggio_dict = await self.messaggio_to_dict_async(messaggio)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'forum_message',
-                    'messaggio': messaggio.to_dict()
+                    'messaggio': messaggio_dict
                 }
             )
     
@@ -76,11 +77,12 @@ class ForumConsumer(AsyncWebsocketConsumer):
         )
         
         if messaggio:
+            messaggio_dict = await self.messaggio_to_dict_async(messaggio)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'forum_message',
-                    'messaggio': messaggio.to_dict()
+                    'messaggio': messaggio_dict
                 }
             )
     
@@ -95,11 +97,12 @@ class ForumConsumer(AsyncWebsocketConsumer):
         )
         
         if messaggio:
+            messaggio_dict = await self.messaggio_to_dict_async(messaggio)
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {
                     'type': 'forum_message',
-                    'messaggio': messaggio.to_dict()
+                    'messaggio': messaggio_dict
                 }
             )
     
@@ -136,11 +139,74 @@ class ForumConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             return None
     
-    @database_sync_to_async
-    def get_messaggi_recenti(self):
+    async def get_messaggi_recenti(self):
         """Recupera ultimi 50 messaggi"""
+        messaggi = await self.get_messaggi_from_db()
+        
+        messaggi_data = []
+        for messaggio in messaggi:
+            messaggio_dict = await self.messaggio_to_dict_async(messaggio)
+            messaggi_data.append(messaggio_dict)
+        
+        return messaggi_data
+    
+    @database_sync_to_async
+    def get_messaggi_from_db(self):
+        """Recupera messaggi dal database"""
         messaggi = MessaggioForum.objects.select_related(
             'autore', 'negozio_recensito'
         ).order_by('-data_creazione')[:50]
         
-        return [msg.to_dict() for msg in reversed(messaggi)]
+        return list(reversed(messaggi))
+    
+    @database_sync_to_async
+    def get_ingredienti_formattati(self, ingredienti_ricetta):
+        """Versione asincrona per formattare gli ingredienti"""
+        if not ingredienti_ricetta:
+            return []
+        
+        ingredienti_con_nomi = []
+        for ingrediente in ingredienti_ricetta:
+            try:
+                prodotto = Prodotto.objects.get(id=ingrediente['prodotto_id'])
+                ingredienti_con_nomi.append({
+                    'nome': prodotto.nome,
+                    'marca': prodotto.marca,
+                    'quantita': ingrediente.get('quantita', '1'),
+                    'note': ingrediente.get('note', ''),
+                })
+            except Prodotto.DoesNotExist:
+                continue
+        
+        return ingredienti_con_nomi
+
+    async def messaggio_to_dict_async(self, messaggio):
+        """Versione asincrona di to_dict per i messaggi"""
+        data = {
+            'id': messaggio.id,
+            'autore': messaggio.autore.username,
+            'tipo': messaggio.tipo,
+            'contenuto': messaggio.contenuto,
+            'data_creazione': messaggio.data_creazione.strftime('%d/%m/%Y %H:%M'),
+            'timestamp': messaggio.data_creazione.timestamp(),
+        }
+        
+        if messaggio.tipo == 'recensione':
+            data.update({
+                'negozio': {
+                    'nome': messaggio.negozio_recensito.nome,
+                    'citta': messaggio.negozio_recensito.citta,
+                } if messaggio.negozio_recensito else None,
+                'stelle': messaggio.stelle,
+                'stelle_emoji': '⭐' * messaggio.stelle if messaggio.stelle else '',
+            })
+        
+        elif messaggio.tipo == 'ricetta':
+            ingredienti_formattati = await self.get_ingredienti_formattati(messaggio.ingredienti_ricetta)
+            data.update({
+                'nome_ricetta': messaggio.nome_ricetta,
+                'ingredienti': ingredienti_formattati,
+                'note_ricetta': messaggio.note_ricetta,
+            })
+        
+        return data

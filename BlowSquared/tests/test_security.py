@@ -78,7 +78,7 @@ class MixinSecurityTest(BaseTestCase):
         """Test del mixin IsDipendente"""
         # Test che dipendente viene riconosciuto
         self.assertTrue(hasattr(self.dipendente_user, 'dipendente'))
-        self.assertTrue(self.dipendente_user.dipendente.attivo)
+        self.assertEqual(self.dipendente_user.dipendente.negozio, self.negozio1)
         
         # Test che utente normale non è dipendente
         with self.assertRaises(AttributeError):
@@ -88,7 +88,7 @@ class MixinSecurityTest(BaseTestCase):
         """Test del mixin IsDirigente"""
         # Test che dirigente viene riconosciuto
         self.assertTrue(hasattr(self.dirigente_user, 'dirigente'))
-        self.assertTrue(self.dirigente_user.dirigente.attivo)
+        self.assertEqual(self.dirigente_user.dirigente.negozio_principale, self.negozio1)
         
         # Test che utente normale non è dirigente
         with self.assertRaises(AttributeError):

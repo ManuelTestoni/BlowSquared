@@ -5,6 +5,7 @@ from django.contrib import messages
 from functools import wraps
 from .models import Prodotto
 from decimal import Decimal
+from negozi.models import Negozio
 
 
 #Controlliamo che le persone che visualizzano alle pagine abbiano i permessi giusti. 
@@ -42,7 +43,7 @@ def list(request):
         negozio_temporaneo_id = request.session.get('negozio_temporaneo_id')
         if negozio_temporaneo_id:
             try:
-                from negozi.models import Negozio
+                
                 negozio_selezionato = Negozio.objects.get(id=negozio_temporaneo_id, attivo=True)
             except Negozio.DoesNotExist:
                 # Il negozio temporaneo non è più valido

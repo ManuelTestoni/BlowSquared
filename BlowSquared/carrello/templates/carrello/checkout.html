@@ -324,6 +324,32 @@ document.addEventListener('DOMContentLoaded', function() {
         // Aggiungi event listener per il debug
         form.addEventListener('submit', function(e) {
             console.log('Form submit event fired');
+            
+            // Controlla se tutti i campi obbligatori sono compilati
+            const requiredFields = form.querySelectorAll('[required]');
+            let allValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    console.log('Campo obbligatorio vuoto:', field.name || field.id);
+                    allValid = false;
+                }
+            });
+            
+            if (!allValid) {
+                console.log('Alcuni campi obbligatori non sono compilati');
+                e.preventDefault();
+                return false;
+            }
+            
+            console.log('Form validation passed, submitting...');
+            
+            // Cambia il pulsante per indicare che è in elaborazione
+            const submitBtn = document.querySelector('.btn-complete-order');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="btn-icon">⏳</span> Elaborazione...';
+            }
         });
         
         // Debug del pulsante
@@ -332,6 +358,14 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Submit button found');
             submitBtn.addEventListener('click', function(e) {
                 console.log('Submit button clicked');
+                
+                // Assicurati che il pulsante invii il form
+                if (e.target.type === 'submit') {
+                    console.log('Button is submit type, form should submit');
+                } else {
+                    console.log('Button is not submit type, manually submitting form');
+                    form.submit();
+                }
             });
         }
     } else {

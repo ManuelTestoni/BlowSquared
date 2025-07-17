@@ -70,14 +70,55 @@ class ForumChat {
     }
     
     connectWebSocket() {
-        // Per ora usiamo solo la modalità REST API
-        // Il WebSocket sarà implementato successivamente quando installiamo Redis
-        this.isConnected = true;
-        this.updateConnectionStatus(true);
+        // Crea connessione WebSocket
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/forum/`;
+        
+        this.socket = new WebSocket(wsUrl);
+        
+        this.socket.onopen = (event) => {
+            this.isConnected = true;
+            this.updateConnectionStatus(true);
+        };
+        
+        this.socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            this.handleWebSocketMessage(data);
+        };
+        
+        this.socket.onclose = (event) => {
+            this.isConnected = false;
+            this.updateConnectionStatus(false);
+            
+            // Riconnessione automatica dopo 3 secondi
+            setTimeout(() => {
+                this.connectWebSocket();
+            }, 3000);
+        };
+        
+        this.socket.onerror = (error) => {
+            this.isConnected = false;
+            this.updateConnectionStatus(false);
+        };
+    }
+    
+    handleWebSocketMessage(data) {
+        switch(data.tipo) {
+            case 'messaggio_storico':
+                this.addMessage(data.messaggio);
+                break;
+            case 'nuovo_messaggio':
+                this.addMessage(data.messaggio);
+                this.scrollToBottom();
+                break;
+            case 'errore':
+                this.showError(data.messaggio);
+                break;
+        }
     }
     
     setupEventListeners() {
-        // Invio messaggio con Enter
+        // Invio messaggio with Enter
         this.messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -136,30 +177,35 @@ class ForumChat {
     }
     
     sendToServer(data) {
-        // Invia tramite API REST
-        fetch('/forum/api/invia-messaggio/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': this.getCsrfToken(),
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                this.addMessage(result.messaggio);
-                this.scrollToBottom();
-            } else {
-                console.error('Errore server:', result.error);
-                alert('Errore nell\'invio del messaggio: ' + (result.error || 'Errore sconosciuto'));
-            }
-        })
-        .catch(error => {
-            console.error('Errore fetch:', error);
-            alert('Errore di connessione. Riprova.');
-        });
+        // Invia tramite WebSocket se connesso, altrimenti usa API REST
+        if (this.isConnected && this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(data));
+        } else {
+            // Fallback a API REST
+            fetch('/forum/api/invia-messaggio/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    this.addMessage(result.messaggio);
+                    this.scrollToBottom();
+                } else {
+                    console.error('Errore server:', result.error);
+                    alert('Errore nell\'invio del messaggio: ' + (result.error || 'Errore sconosciuto'));
+                }
+            })
+            .catch(error => {
+                console.error('Errore fetch:', error);
+                alert('Errore di rete. Riprova più tardi.');
+            });
+        }
     }
     
     addMessage(messageData) {
@@ -423,6 +469,27 @@ class ForumChat {
         
         console.error('CSRF token non trovato');
         return '';
+    }
+    
+    showError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.innerHTML = `
+            <div class="error-content">
+                <span class="error-icon">⚠️</span>
+                <span class="error-text">${message}</span>
+            </div>
+        `;
+        
+        this.messagesContainer.appendChild(errorDiv);
+        this.scrollToBottom();
+        
+        // Rimuovi il messaggio di errore dopo 5 secondi
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 5000);
     }
 }
 

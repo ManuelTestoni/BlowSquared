@@ -93,6 +93,7 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
         return response.json();
     })
     .then(data => {
+        console.log('Risposta dal server:', data); // Debug
         
         if (data.success) {
             // Mostra messaggio di successo
@@ -117,13 +118,19 @@ function aggiungiAlCarrello(prodottoId, quantita, button) {
             if (data.redirect_login) {
                 // Per utenti non autenticati, mostra un messaggio specifico
                 showNotification(data.message, 'info');
+                
+                // Opzionale: reindirizza al login dopo qualche secondo
+                setTimeout(() => {
+                    window.location.href = '/utenti/login/';
+                }, 2000);
             } else {
                 showNotification(data.message, 'error');
             }
             
-            // Ripristina il pulsante
+            // Ripristina immediatamente il pulsante in caso di errore
             button.disabled = false;
             button.innerHTML = originalText;
+            button.style.background = '';
         }
     })
     .catch(error => {

@@ -53,8 +53,6 @@ class BaseTestCase(TestCase):
             provincia='MO',
             regione='Emilia-Romagna',
             telefono='0123456789',
-            latitudine=Decimal('44.6471700'),
-            longitudine=Decimal('10.9251400'),
             data_apertura=date(2020, 1, 15),
             attivo=True
         )
@@ -68,10 +66,16 @@ class BaseTestCase(TestCase):
             provincia='MO',
             regione='Emilia-Romagna',
             telefono='0987654321',
-            latitudine=Decimal('44.6500000'),
-            longitudine=Decimal('10.9300000'),
             data_apertura=date(2021, 3, 20),
             attivo=True
+        )
+        
+        # Creazione profili utente
+        self.profilo_utente = ProfiloUtente.objects.create(
+            user=self.utente_normale,
+            citta='Modena',
+            provincia='MO',
+            negozio_preferito=self.negozio1
         )
         
         # Creazione dipendente e dirigente
@@ -122,16 +126,6 @@ class BaseTestCase(TestCase):
         # Aggiunta prodotti ai negozi
         self.negozio1.prodotti_disponibili.add(self.prodotto1, self.prodotto2)
         self.negozio2.prodotti_disponibili.add(self.prodotto1)
-        
-        # Setup profili utente (creati esplicitamente)
-        from utenti.models import ProfiloUtente
-        
-        profilo_normale = ProfiloUtente.objects.create(user=self.utente_normale)
-        profilo_normale.negozio_preferito = self.negozio1
-        profilo_normale.save()
-        
-        ProfiloUtente.objects.create(user=self.dipendente_user)
-        ProfiloUtente.objects.create(user=self.dirigente_user)
         
         # Client per le richieste HTTP
         self.client = Client()

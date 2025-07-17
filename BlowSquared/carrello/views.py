@@ -411,6 +411,8 @@ def checkout(request):
 def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizione, totale_finale):
     """Processa l'ordine dal checkout"""
     
+    print(f"DEBUG: Process order chiamato, POST data: {request.POST}")
+    
     # Validazione campi obbligatori
     required_fields = {
         'nome_completo': 'Nome completo',
@@ -424,24 +426,31 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
     
     errors = []
     for field, label in required_fields.items():
-        if not request.POST.get(field, '').strip():
+        value = request.POST.get(field, '').strip()
+        if not value:
             errors.append(f'Il campo {label} è obbligatorio')
+            print(f"DEBUG: Campo {field} è vuoto")
+        else:
+            print(f"DEBUG: Campo {field} = '{value}'")
     
     # Validazione email
     import re
     email = request.POST.get('email', '').strip()
     if email and not re.match(r'^[^@]+@[^@]+\.[^@]+$', email):
         errors.append('Inserisci un indirizzo email valido')
+        print(f"DEBUG: Email non valida: '{email}'")
     
     # Validazione CAP
     cap = request.POST.get('cap', '').strip()
     if cap and not re.match(r'^\d{5}$', cap):
         errors.append('Il CAP deve essere di 5 cifre')
+        print(f"DEBUG: CAP non valido: '{cap}'")
     
     # Validazione provincia
     provincia = request.POST.get('provincia', '').strip().upper()
     if provincia and len(provincia) != 2:
         errors.append('La provincia deve essere di 2 lettere (es. MO, BO)')
+        print(f"DEBUG: Provincia non valida: '{provincia}'")
     
     # Validazione campi di fatturazione se diversi
     if request.POST.get('different_billing'):
@@ -457,9 +466,12 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
                 errors.append(f'Il campo {label} è obbligatorio')
     
     if errors:
+        print(f"DEBUG: Errori trovati: {errors}")
         for error in errors:
             messages.error(request, error)
         return redirect('carrello:checkout')
+    
+    print("DEBUG: Validazione passata, creando ordine...")
     
     try:
         # Crea l'ordine
@@ -517,10 +529,13 @@ def process_order(request, carrello, elementi_carrello, subtotale, costo_spedizi
         # Messaggio di successo
         messages.success(request, f'Ordine #{ordine.codice_ordine} creato con successo!')
         
+        print(f"DEBUG: Ordine creato con successo: {ordine.codice_ordine}")
+        
         # Reindirizza alla pagina di conferma con il codice ordine
         return redirect('carrello:ordine_completato', codice_ordine=ordine.codice_ordine)
         
     except Exception as e:
+        print(f"DEBUG: Errore durante creazione ordine: {e}")
         messages.error(request, f'Errore durante la creazione dell\'ordine. Riprova.')
         return redirect('carrello:checkout')
 

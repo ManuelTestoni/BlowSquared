@@ -118,8 +118,6 @@ class StressTest(TransactionTestCase):
             provincia='MO',
             regione='Emilia-Romagna',
             telefono='1234567890',
-            latitudine=Decimal('44.6471700'),
-            longitudine=Decimal('10.9251400'),
             data_apertura=date(2020, 1, 1),
             attivo=True
         )
@@ -149,8 +147,14 @@ class StressTest(TransactionTestCase):
                 email=f'stress{i}@test.com',
                 password='testpass123'
             )
-            user.profilo.negozio_preferito = self.negozio
-            user.profilo.save()
+            # Crea profilo utente
+            from utenti.models import ProfiloUtente
+            ProfiloUtente.objects.create(
+                user=user,
+                citta='Modena',
+                provincia='MO',
+                negozio_preferito=self.negozio
+            )
             users.append(user)
         
         # Simula operazioni concorrenti
@@ -179,8 +183,14 @@ class StressTest(TransactionTestCase):
             email='memory@test.com',
             password='testpass123'
         )
-        user.profilo.negozio_preferito = self.negozio
-        user.profilo.save()
+        # Crea profilo utente
+        from utenti.models import ProfiloUtente
+        ProfiloUtente.objects.create(
+            user=user,
+            citta='Modena',
+            provincia='MO',
+            negozio_preferito=self.negozio
+        )
         
         carrello = Carrello.objects.create(
             utente=user,

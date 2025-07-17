@@ -7,3 +7,4 @@ django-leaflet
 django-carton
 django-contrib-comments
 channels
+daphne
